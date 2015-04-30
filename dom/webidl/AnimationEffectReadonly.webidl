@@ -11,8 +11,8 @@
  */
 
 [Func="nsDocument::IsWebAnimationsEnabled"]
-interface AnimationEffectReadOnly {
+interface AnimationEffectReadonly {
   // Not yet implemented:
-  // readonly attribute AnimationEffectTimingReadOnly timing;
+  // readonly attribute AnimationEffectTimingReadonly timing;
   // readonly attribute ComputedTimingProperties      computedTiming;
 };
