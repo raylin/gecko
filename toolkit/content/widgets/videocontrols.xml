@@ -268,10 +268,13 @@
                 </html:div>
             </vbox>
 
+
             <vbox class="controlsOverlay">
                 <stack flex="1">
                     <spacer class="controlsSpacer" flex="1"/>
                     <box class="clickToPlay" hidden="true" flex="1"/>
+                    <vbox class="textTrackList" hidden="true">
+                    </vbox>
                 </stack>
                 <hbox class="controlBar" hidden="true">
                     <button class="playButton"
@@ -295,6 +298,7 @@
                       <box class="volumeForeground" anonid="volumeForeground"/>
                       <scale class="volumeControl" movetoclick="true"/>
                     </stack>
+                    <button class="closedCaptionButton"/>
                     <button class="fullscreenButton"
                             enterfullscreenlabel="&fullscreenButton.enterfullscreenlabel;"
                             exitfullscreenlabel="&fullscreenButton.exitfullscreenlabel;"/>
@@ -311,7 +315,7 @@
             this.randomID = 0;
 
             this.Utils = {
-                debug : false,
+                debug : true,
                 video : null,
                 videocontrols : null,
                 controlBar : null,
@@ -330,7 +334,9 @@
                 stats          : {},
                 controlsOverlay : null,
                 fullscreenButton : null,
+                currentTextTrackIndex: 0,
 
+                textTracksCount: 0,
                 randomID : 0,
                 videoEvents : ["play", "pause", "ended", "volumechange", "loadeddata",
                                "loadstart", "timeupdate", "progress",
@@ -469,6 +475,7 @@
                     this._durationLabelWidth = this.durationLabel.clientWidth;
                     this._muteButtonWidth = this.muteButton.clientWidth;
                     this._volumeControlWidth = this.volumeControl.clientWidth;
+                    this._closedCaptionButtonWidth = this.closedCaptionButton.clientWidth;
                     this._fullscreenButtonWidth = this.fullscreenButton.clientWidth;
                     this._controlBarHeight = this.controlBar.clientHeight;
                     this.controlBar.hidden = true;
@@ -956,6 +963,7 @@
                             return;
 
                         this.startFadeOut(this.controlBar, false);
+                        this.textTrackList.setAttribute("hidden", "true");
                         clearTimeout(this._showControlsTimeout);
                         Utils._controlsHiddenByTimeout = false;
                     }
@@ -1348,6 +1356,147 @@
                     event.preventDefault(); // Prevent page scrolling
                 },
 
+                isClosedCaptionOn : function () {
+                  let isCCOn = false;
+
+                  for (let tt of this.video.textTracks) {
+                    if (tt.mode === "showing") {
+                      isCCOn = true;
+                    }
+                  }
+
+                  return isCCOn;
+                },
+
+                setClosedCaptionButtonState : function () {
+                  if (this.video.textTracks.length !== 0) {
+                    this.closedCaptionButton.removeAttribute("hidden");
+                  } else {
+                    return this.closedCaptionButton.setAttribute("hidden", "true");
+                  }
+
+                  if (this.isClosedCaptionOn()) {
+                    this.closedCaptionButton.removeAttribute("closed");
+                  } else {
+                    this.closedCaptionButton.setAttribute("closed", "true");
+                  }
+
+                  const ttList = document.getAnonymousElementByAttribute(
+                    this.videocontrols, "class", "textTrackList");
+                  const ttItems = ttList.childNodes;
+
+                  for (let tti of ttItems) {
+                    const idx = +tti.getAttribute("index");
+
+                    if (idx === this.currentTextTrackIndex) {
+                      tti.setAttribute("on", "true");
+                    } else {
+                      tti.removeAttribute("on");
+                    }
+                  }
+                },
+
+                addNewTextTrack : function (tt) {
+                  if (tt.index && tt.index < this.textTracksCount) {
+                    return;   
+                  }
+
+                  tt.index = this.textTracksCount++;
+
+                  const label = tt.label || "";
+                  const ttText = document.createTextNode(label);
+                  const ttBtn = document.createElement("button");
+
+                  ttBtn.setAttribute("class", "textTrackItem");
+                  ttBtn.setAttribute("index", tt.index);
+
+                  ttBtn.addEventListener("click", function () {
+                    this.changeTextTrack(tt.index);
+                  }.bind(this));
+
+                  ttBtn.appendChild(ttText);
+
+                  this.textTrackList.appendChild(ttBtn);
+                },
+
+                changeTextTrack : function (index) {
+                  let toIndex = 0;
+
+                  for (let tt of this.video.textTracks) {
+                    if (tt.index === index) {
+                      tt.mode = "showing";
+                      toIndex = index;
+                    } else {
+                      tt.mode = "disabled";
+                    }
+                  }
+
+                  if (index > 0 && toIndex === 0 && this.video.textTracks[0]) {
+                    this.video.textTracks[0].mode = "showing";
+                    toIndex = this.video.textTracks[0].index;
+                  }
+
+                  this.currentTextTrackIndex = toIndex;
+                  this.textTrackList.setAttribute("hidden", "true");
+                  this.setClosedCaptionButtonState();
+                },
+
+                toggleClosedCaption : function () {
+                  if (this.video.textTracks.length === 1) {
+                    return this.changeTextTrack(this.isClosedCaptionOn() ? 0 : 1);
+                  }
+
+                  if (this.textTrackList.hasAttribute("hidden")) {
+                    this.textTrackList.removeAttribute("hidden");
+                  } else {
+                    this.textTrackList.setAttribute("hidden", "true");
+                  }
+                },
+
+                onTextTrackAdd : function (trackEvent) {
+                  this.addNewTextTrack(trackEvent.track);
+
+                  this.setClosedCaptionButtonState();
+                },
+
+                onTextTrackRemove : function (trackEvent) {
+                  const toRemoveIndex = trackEvent.track.index;
+                  const ttItems = document.getAnonymousElementByAttribute(
+                    this.videocontrols, "class", "textTrackList").childNodes;
+
+                  if (!ttItems) {
+                    return;   
+                  }
+
+                  for (let tti of ttItems) {
+                    const idx = +tti.getAttribute("index");
+
+                    if (idx === toRemoveIndex) {
+                      tti.remove();
+                    }
+
+                    if (idx === this.currentTextTrackIndex) {
+                      this.currentTextTrackIndex = 0;   
+                    }
+                  }
+
+                  this.setClosedCaptionButtonState();
+                },
+
+                initTextTracks : function () {
+                  this.addNewTextTrack({label: "off"});
+
+                  for (let tt of this.video.textTracks) {
+                    this.addNewTextTrack(tt);
+
+                    if (tt.mode === "showing" && tt.index) {
+                      this.currentTextTrackIndex = tt.index;
+                    }
+                  }
+
+                  this.setClosedCaptionButtonState();
+                },
+
                 isEventWithin : function (event, parent1, parent2) {
                     function isDescendant (node) {
                         while (node) {
@@ -1375,6 +1524,7 @@
                 _durationLabelWidth : 0,
                 _muteButtonWidth : 0,
                 _volumeControlWidth : 0,
+                _closedCaptionButtonWidth : 0,
                 _fullscreenButtonWidth : 0,
                 _controlBarHeight : 0,
                 _overlayPlayButtonHeight : 64,
@@ -1391,6 +1541,7 @@
                                               this._durationLabelWidth +
                                               this._muteButtonWidth +
                                               this._volumeControlWidth +
+                                              this._closedCaptionButtonWidth +
                                               this._fullscreenButtonWidth;
 
                     let isFullscreenUnavailable = this.controlBar.hasAttribute("fullscreen-unavailable");
@@ -1469,6 +1620,8 @@
                     this.clickToPlay        = document.getAnonymousElementByAttribute(binding, "class", "clickToPlay");
                     this.fullscreenButton   = document.getAnonymousElementByAttribute(binding, "class", "fullscreenButton");
                     this.volumeForeground   = document.getAnonymousElementByAttribute(binding, "anonid", "volumeForeground");
+                    this.closedCaptionButton = document.getAnonymousElementByAttribute(binding, "class", "closedCaptionButton");
+                    this.textTrackList = document.getAnonymousElementByAttribute(binding, "class", "textTrackList");
 
                     this.statsTable       = document.getAnonymousElementByAttribute(binding, "class", "statsTable");
                     this.stats.filename   = document.getAnonymousElementByAttribute(binding, "class", "statFilename");
@@ -1485,6 +1638,7 @@
                     this.isAudioOnly = (this.video instanceof HTMLAudioElement);
                     this.setupInitialState();
                     this.setupNewLoadState();
+                    this.initTextTracks();
 
                     // Use the handleEvent() callback for all media events.
                     // The "error" event listener must capture, so that it can trap error events
@@ -1507,6 +1661,7 @@
                     addListener(this.playButton, "command", this.togglePause);
                     addListener(this.fullscreenButton, "command", this.toggleFullscreen);
                     addListener(this.clickToPlay, "click", this.clickToPlayClickHandler);
+                    addListener(this.closedCaptionButton, "click", this.toggleClosedCaption);
                     addListener(this.controlsSpacer, "click", this.clickToPlayClickHandler);
                     addListener(this.controlsSpacer, "dblclick", this.toggleFullscreen);
 
@@ -1514,6 +1669,8 @@
                     addListener(this.videocontrols, "transitionend", this.onTransitionEnd);
                     addListener(this.video.ownerDocument, "fullscreenchange", this.onFullscreenChange);
                     addListener(this.video, "keypress", this.keyHandler);
+                    addListener(this.video.textTracks, "addtrack", this.onTextTrackAdd);
+                    addListener(this.video.textTracks, "removetrack", this.onTextTrackRemove);
 
                     addListener(this.videocontrols, "dragstart", function(event) {
                         event.preventDefault(); //prevent dragging of controls image (bug 517114)

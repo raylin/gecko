@@ -12,6 +12,7 @@
 
 .playButton,
 .muteButton,
+.closedCaptionButton,
 .fullscreenButton {
   background-color: transparent;
   background-repeat: no-repeat;
@@ -27,6 +28,7 @@
 
 .playButton:hover,
 .muteButton:hover,
+.closeCaptionButton:hover,
 .fullscreenButton:hover {
   opacity: 1;
 }
@@ -63,6 +65,19 @@
   display: none;
 }
 
+.closedCaptionButton {
+  opacity: 1;
+  background-image: url(chrome://global/skin/media/closeCaptionButton.png);
+}
+
+.closedCaptionButton[closed] {
+  opacity: 0.4;
+}
+
+.closedCaptionButton[hidden] {
+  display: none;
+}
+
 .fullscreenButton {
   background-image: -moz-image-rect(url("chrome://global/skin/media/fullscreenButton.png"), 0, 16, 16, 0);
 }
@@ -92,6 +107,42 @@
   background-clip: content-box;
 }
 
+.textTrackList {
+  display: -moz-box;
+  -moz-appearance: none;
+  -moz-box-pack: end;
+  -moz-box-align: end;
+  -moz-margin-end: 10px;
+  padding: 0;
+  /*transform: translate(-50px, -105px);*/
+}
+
+.textTrackList[hidden] {
+  display: none;
+  transition: transform 250ms ease-in;
+}
+
+.textTrackList > html|*.textTrackItem {
+  -moz-appearance: none;
+  -moz-box-align: start;
+  text-align: left;
+  width: 120px;
+  display: -moz-box;
+  overflow: hidden;
+  background-color: rgba(35,31,32,.74);
+  margin: 0;
+  padding: 2px 5px;
+  border: none;
+  color: white;
+}
+
+.textTrackList > html|*.textTrackItem[on] {
+ color: red;
+}
+
+.textTrackList > html|*.textTrackItem:hover {
+  background-color: #FF9500;
+}
 .controlBar[fullscreen-unavailable] > .volumeStack {
   /* This value is duplicated in the videocontrols.xml adjustControlSize function. */
   -moz-margin-end: 8px;
@@ -339,6 +390,10 @@ html|table {
   .muteButton[noAudio] {
     background-image: url(chrome://global/skin/media/noAudio@2x.png);
     background-size: 33px 28px;
+  }
+  .closeCaptionButton {
+    background-image: url(chrome://global/skin/media/closeCaptionButton@2x.png);
+    background-size: 28px 28px;
   }
   .fullscreenButton {
     background-image: -moz-image-rect(url("chrome://global/skin/media/fullscreenButton@2x.png"), 0, 32, 32, 0);
