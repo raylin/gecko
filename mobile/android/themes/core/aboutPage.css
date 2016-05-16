@@ -10,6 +10,43 @@ body {
   background-color: #ced7de;
 }
 
+#banner-stack {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.stack-item {
+  height: 180px;
+  width: 100%;
+}
+
+#banner-background {
+  position: absolute;
+  z-index: 1;
+  background-color: #0096DD;
+}
+
+#blur-logo {
+  position: absolute;
+  z-index: 2;
+  background-image: url(chrome://branding/content/about-logo@2x.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100%;
+  opacity: 0.25;
+  filter: blur(10px);
+}
+
+#banner-content {
+  color: white;
+}
+
+#banner-content > .banner-content-box {
+  text-align: center;
+  margin: 5px auto;
+}
+
 #header {
   height: 80px;
 }
@@ -78,32 +115,12 @@ body {
 }
 
 #aboutLinks {
-  margin: 0 0 15px 0;
   padding: 0;
-}
-
-#aboutLinks > li {
-  line-height: 2.6;
-  border-top: 1px solid white;
-  border-bottom: 1px solid #C1C7CC;
-}
-
-#aboutLinks > li > a {
-  padding-left: 25px;
-  display: block;
 }
 
 #aboutDetails {
   padding-left: 15px;
   font-size: 15px;
-}
-
-.top-border {
-  border-bottom: 1px solid #C1C7CC;
-}
-
-.bottom-border {
-  border-top: 1px solid white;
 }
 
 a, span {
@@ -114,4 +131,20 @@ a, span {
 #updateBox > a,
 #updateBox > span {
   color: #e5f2ff;
+}
+
+.link-item {
+  min-height: 0;
+  border-bottom: 1px solid #D7D9DB;
+}
+
+.link-item a {
+  display: block;
+  height: 70px;
+  line-height: 70px;
+  padding-left: 24px;
+  font-size: 16px;
+  font-family: "Clear Sans";
+  vertical-align: middle;
+  color: #363B40;
 }
