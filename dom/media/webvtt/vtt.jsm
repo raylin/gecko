@@ -1148,7 +1148,7 @@ this.EXPORTED_SYMBOLS = ["WebVTT"];
   // Runs the processing model over the cues and regions passed to it.
   // @param overlay A block level element (usually a div) that the computed cues
   //                and regions will be placed into.
-  WebVTT.processCues = function(window, cues, overlay) {
+  WebVTT.processCues = function(window, cues, overlay, controls) {
     if (!window || !cues || !overlay) {
       return null;
     }
@@ -1157,6 +1157,9 @@ this.EXPORTED_SYMBOLS = ["WebVTT"];
     while (overlay.firstChild) {
       overlay.removeChild(overlay.firstChild);
     }
+    let controlBar = controls.ownerDocument.getAnonymousElementByAttribute(
+      controls, "class", "controlBar");
+    let offsetY = controlBar.clientHeight;
 
     var paddedOverlay = window.document.createElement("div");
     paddedOverlay.style.position = "absolute";
@@ -1207,6 +1210,9 @@ this.EXPORTED_SYMBOLS = ["WebVTT"];
         // Move the cue div to it's correct line position.
         moveBoxToLinePosition(window, styleBox, containerBox, boxPositions);
 
+        if (+styleBox.div.style.bottom.replace(/px$/, "") < offsetY) {
+          styleBox.div.style.transform = `translateY(-${offsetY}px)`;
+        }
         // Remember the computed div so that we don't have to recompute it later
         // if we don't have too.
         cue.displayState = styleBox.div;

@@ -79,7 +79,7 @@ interface nsIWebVTTParserWrapper : nsISupports
    * @param overlay The HTMLElement that the cues will be displayed within.
    */
   void processCues(in mozIDOMWindow window, in nsIVariant cues,
-                   in nsISupports overlay);
+                   in nsISupports overlay, in nsISupports controls);
 };
 
 %{C++
