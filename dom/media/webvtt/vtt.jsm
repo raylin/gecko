@@ -1148,7 +1148,9 @@ this.EXPORTED_SYMBOLS = ["WebVTT"];
   // Runs the processing model over the cues and regions passed to it.
   // @param overlay A block level element (usually a div) that the computed cues
   //                and regions will be placed into.
-  WebVTT.processCues = function(window, cues, overlay) {
+  // @param controls A XBL that controls playback. Cues' position will be
+  //                 affected and restyled according to it.
+  WebVTT.processCues = function(window, cues, overlay, controls) {
     if (!window || !cues || !overlay) {
       return null;
     }
@@ -1157,6 +1159,15 @@ this.EXPORTED_SYMBOLS = ["WebVTT"];
     while (overlay.firstChild) {
       overlay.removeChild(overlay.firstChild);
     }
+
+    var controlBar, cueOffsetY;
+
+    if (controls) {
+      controlBar = controls.ownerDocument.getAnonymousElementByAttribute(
+        controls, "class", "controlBar");
+    }
+
+    cueOffsetY = controlBar ? controlBar.clientHeight : 0;
 
     var paddedOverlay = window.document.createElement("div");
     paddedOverlay.style.position = "absolute";
@@ -1206,6 +1217,11 @@ this.EXPORTED_SYMBOLS = ["WebVTT"];
 
         // Move the cue div to it's correct line position.
         moveBoxToLinePosition(window, styleBox, containerBox, boxPositions);
+
+        // Vertically move up only when cue overlapped with control bar
+        if (+styleBox.div.style.bottom.replace(/px$/, "") < cueOffsetY) {
+          styleBox.div.style.transform = `translateY(-${cueOffsetY}px)`;
+        }
 
         // Remember the computed div so that we don't have to recompute it later
         // if we don't have too.
