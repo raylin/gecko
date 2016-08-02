@@ -67,7 +67,7 @@
 }
 
 .closedCaptionButton {
-  background-image: url(chrome://global/skin/media/closeCaptionButton.png);
+  background: url(chrome://global/skin/media/closeCaptionButton.png) 4px;
 }
 
 .closedCaptionButton[enabled] {
@@ -142,9 +142,9 @@
   background-color: rgba(0,0,0,.55);
 }
 
-.controlBar[fullscreen-unavailable] > .volumeStack {
+.controlBar[fullscreen-unavailable] {
   /* This value is duplicated in the videocontrols.xml adjustControlSize function. */
-  margin-inline-end: 8px;
+  padding-inline-end: 8px;
 }
 
 .volumeControl .scale-thumb {
