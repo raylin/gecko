@@ -338,6 +338,7 @@ nsVideoFrame::Reflow(nsPresContext* aPresContext,
       FinishReflowChild(imageFrame, aPresContext,
                         kidDesiredSize, &kidReflowInput,
                         posterRenderRect.x, posterRenderRect.y, 0);
+#ifdef ANDROID
     } else if (child->GetContent() == mVideoControls) {
       // Reflow the video controls frame.
       nsBoxLayoutState boxState(PresContext(), aReflowInput.mRenderingContext);
@@ -352,8 +353,10 @@ nsVideoFrame::Reflow(nsPresContext* aPresContext,
         RefPtr<Runnable> event = new DispatchResizeToControls(child->GetContent());
         nsContentUtils::AddScriptRunner(event);
       }
-    } else if (child->GetContent() == mCaptionDiv) {
-      // Reflow to caption div
+#endif
+    } else if (child->GetContent() == mCaptionDiv ||
+        child->GetContent() == mVideoControls) {
+      // Reflow the caption and control bar frames.
       ReflowOutput kidDesiredSize(aReflowInput);
       WritingMode wm = child->GetWritingMode();
       LogicalSize availableSize = aReflowInput.AvailableSize(wm);
@@ -368,6 +371,11 @@ nsVideoFrame::Reflow(nsPresContext* aPresContext,
       size.width -= kidReflowInput.ComputedPhysicalBorderPadding().LeftRight();
       size.height -= kidReflowInput.ComputedPhysicalBorderPadding().TopBottom();
 
+      if (child->GetContent() == mVideoControls && child->GetSize() != size) {
+        RefPtr<Runnable> event = new DispatchResizeToControls(child->GetContent());
+        nsContentUtils::AddScriptRunner(event);
+      }
+
       kidReflowInput.SetComputedWidth(std::max(size.width, 0));
       kidReflowInput.SetComputedHeight(std::max(size.height, 0));
 
@@ -376,6 +384,7 @@ nsVideoFrame::Reflow(nsPresContext* aPresContext,
       FinishReflowChild(child, aPresContext,
                         kidDesiredSize, &kidReflowInput,
                         mBorderPadding.left, mBorderPadding.top, 0);
+
     }
   }
   aMetrics.SetOverflowAreasToDesiredBounds();
