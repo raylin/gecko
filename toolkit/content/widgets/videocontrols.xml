@@ -210,7 +210,7 @@
 
     <xbl:content xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns="http://www.w3.org/1999/xhtml" class="mediaControlsFrame">
-        <div anonid="controlsContainer" class="controlsContainer">
+        <div anonid="controlsContainer" class="controlsContainer" aria-hidden="true">
             <div anonid="statusOverlay" class="statusOverlay stackItem" hidden="true">
                 <div anonid="statusIcon" class="statusIcon"></div>
                 <span class="errorLabel" anonid="errorAborted">&error.aborted;</span>
@@ -222,12 +222,13 @@
             </div>
 
             <div anonid="controlsOverlay" class="controlsOverlay stackItem">
-                <div class="controlsSpacerStack">
-                  <div anonid="controlsSpacer" class="controlsSpacer stackItem"></div>
+                <div class="controlsSpacerStack" aria-hideen="true">
+                  <div anonid="controlsSpacer" class="controlsSpacer stackItem" role="presentation"></div>
                   <div anonid="clickToPlay" class="clickToPlay" hidden="true"></div>
                 </div>
                 <div anonid="controlBar" class="controlBar" hidden="true">
                     <button anonid="playButton"
+                            role="button"
                             class="playButton"
                             playlabel="&playButton.playLabel;"
                             pauselabel="&playButton.pauseLabel;"/>
@@ -245,8 +246,9 @@
                     <div anonid="positionDurationBox" class="positionDurationBox">
                       &positionAndDuration.nameFormat;
                     </div>
-                    <div anonid="controlBarSpacer" class="controlBarSpacer" hidden="true"></div>
+                    <div anonid="controlBarSpacer" class="controlBarSpacer" hidden="true" role="presentation"></div>
                     <button anonid="muteButton"
+                            role="button"
                             class="muteButton"
                             mutelabel="&muteButton.muteLabel;"
                             unmutelabel="&muteButton.unmuteLabel;"/>
@@ -260,8 +262,11 @@
                       </div>
                       <input type="range" anonid="volumeControl" class="volumeControl" min="0" max="100" step="1"/>
                     </div>
-                    <button anonid="closedCaptionButton" class="closedCaptionButton"/>
+                    <button anonid="closedCaptionButton"
+                            role="button"
+                            class="closedCaptionButton"/>
                     <button anonid="fullscreenButton"
+                            role="button"
                             class="fullscreenButton"
                             enterfullscreenlabel="&fullscreenButton.enterfullscreenlabel;"
                             exitfullscreenlabel="&fullscreenButton.exitfullscreenlabel;"/>
@@ -477,6 +482,7 @@
                     // Cannot get minimal width of flexible scrubber and clickToPlay.
                     // Rewrite to empirical value for now.
                     this.scrubberStack.minWidth = 80;
+                    this.volumeControl.minWidth = 48;
                     this.clickToPlay.minWidth = 48;
                     this.positionDurationBox.minWidth -= this.durationSpan.minWidth;
 
@@ -825,6 +831,8 @@
                   const durationSpan = this.durationSpan;
                   const durationFormat = durationSpan.textContent;
                   const positionFormat = positionTextNode.textContent;
+
+                  durationSpan.classList.add("duration");
 
                   Object.defineProperties(this.positionDurationBox, {
                     durationSpan: {
@@ -1450,6 +1458,7 @@
                   } else {
                     this.closedCaptionButton.removeAttribute("enabled");
                   }
+                  this.adjustControlSize();
 
                   let ttItems = this.textTrackList.childNodes;
 
@@ -1719,9 +1728,8 @@
                     this.scrubberStack = document.getAnonymousElementByAttribute(binding, "anonid", "scrubberStack");
                     this.scrubber      = document.getAnonymousElementByAttribute(binding, "anonid", "scrubber");
                     this.durationLabel = document.getAnonymousElementByAttribute(binding, "anonid", "durationLabel");
-                    this.positionDurationBox   = document.getAnonymousElementByAttribute(binding, "anonid", "positionDurationBox");
                     this.positionLabel = document.getAnonymousElementByAttribute(binding, "anonid", "positionLabel");
-                    this.durationSpan = document.getAnonymousElementByAttribute(binding, "class", "duration");
+                    this.positionDurationBox   = document.getAnonymousElementByAttribute(binding, "anonid", "positionDurationBox");
                     this.statusOverlay = document.getAnonymousElementByAttribute(binding, "anonid", "statusOverlay");
                     this.controlsOverlay = document.getAnonymousElementByAttribute(binding, "anonid", "controlsOverlay");
                     this.controlsSpacer     = document.getAnonymousElementByAttribute(binding, "anonid", "controlsSpacer");
@@ -1729,6 +1737,10 @@
                     this.fullscreenButton   = document.getAnonymousElementByAttribute(binding, "anonid", "fullscreenButton");
                     this.closedCaptionButton = document.getAnonymousElementByAttribute(binding, "anonid", "closedCaptionButton");
                     this.textTrackList = document.getAnonymousElementByAttribute(binding, "anonid", "textTrackList");
+
+                    if (this.positionDurationBox) {
+                      this.durationSpan = this.positionDurationBox.getElementsByTagName("span")[0];
+                    }
 
                     // XXX controlsContainer is a desktop only element. To determine whether
                     // isTouchControls or not during the whole initialization process, get

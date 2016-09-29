@@ -619,10 +619,20 @@ nsVideoFrame::GetVideoIntrinsicSize(nsRenderingContext *aRenderingContext)
       return nsSize(0, 0);
     }
 
+    /*
+    nscoord prefHeight = nsLayoutUtils::IntrinsicForContainer(aRenderingContext,
+                                                              mFrames.LastChild(),
+                                                              nsLayoutUtils::MIN_ISIZE).height;
+                                                              */
     // Ask the controls frame what its preferred height is
+    /*
     nsBoxLayoutState boxState(PresContext(), aRenderingContext, 0);
     nscoord prefHeight = mFrames.LastChild()->GetXULPrefSize(boxState).height;
     return nsSize(nsPresContext::CSSPixelsToAppUnits(size.width), prefHeight);
+    */
+
+    return nsSize(nsPresContext::CSSPixelsToAppUnits(size.width), nsPresContext::CSSPixelsToAppUnits(40));
+
   }
 
   HTMLVideoElement* element = static_cast<HTMLVideoElement*>(GetContent());

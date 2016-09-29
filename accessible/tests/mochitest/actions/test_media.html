@@ -63,9 +63,9 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=483573
       todo(false, "Focus test are disabled until bug 494175 is fixed.");
 
       var audioElm = getAccessible("audio");
-      var playBtn = audioElm.firstChild;
+      var playBtn = audioElm.firstChild.firstChild;
       var scrubber = playBtn.nextSibling.nextSibling.nextSibling;
-      var muteBtn = audioElm.lastChild.previousSibling;
+      var muteBtn = audioElm.firstChild.lastChild.previousSibling;
 
       var actions = [
         {

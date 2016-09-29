@@ -61,7 +61,7 @@ toolkit.jar:
   skin/classic/global/media/TopLevelVideoDocument.css      (../../shared/media/TopLevelVideoDocument.css)
   skin/classic/global/media/imagedoc-lightnoise.png        (../../shared/media/imagedoc-lightnoise.png)
   skin/classic/global/media/imagedoc-darknoise.png         (../../shared/media/imagedoc-darknoise.png)
-  skin/classic/global/media/videocontrols.css              (../../shared/media/videocontrols.css)
+* skin/classic/global/media/videocontrols.css              (../../shared/media/videocontrols.css)
   skin/classic/global/media/pauseButton.svg                (../../shared/media/pauseButton.svg)
   skin/classic/global/media/playButton.svg                 (../../shared/media/playButton.svg)
   skin/classic/global/media/muteButton.svg                 (../../shared/media/muteButton.svg)
