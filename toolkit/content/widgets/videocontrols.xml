@@ -251,6 +251,11 @@
                             mutelabel="&muteButton.muteLabel;"
                             unmutelabel="&muteButton.unmuteLabel;"/>
                     <div anonid="volumeStack" class="volumeStack progressContainer" role="none">
+                      <div class="progressBackgroundBar stackItem" role="none">
+                        <div class="progressStack" role="none">
+                          <meter anonid="volumeBackground" class="volumeBackground" value="0" max="100" role="none"></meter>
+                        </div>
+                      </div>
                       <input type="range" anonid="volumeControl" class="volumeControl" min="0" max="100" step="1"/>
                     </div>
                     <button anonid="closedCaptionButton" class="closedCaptionButton"/>
@@ -539,6 +544,7 @@
                     var volumePercentage = Math.round(volume * 100);
                     this.updateMuteButtonState();
                     this.volumeControl.value = volumePercentage;
+                    this.volumeBackground.value = volumePercentage;
                 },
 
                 handleEvent : function(aEvent) {
@@ -1707,6 +1713,7 @@
                     this.muteButton    = document.getAnonymousElementByAttribute(binding, "anonid", "muteButton");
                     this.volumeStack   = document.getAnonymousElementByAttribute(binding, "anonid", "volumeStack");
                     this.volumeControl = document.getAnonymousElementByAttribute(binding, "anonid", "volumeControl");
+                    this.volumeBackground = document.getAnonymousElementByAttribute(binding, "anonid", "volumeBackground");
                     this.progressBar   = document.getAnonymousElementByAttribute(binding, "anonid", "progressBar");
                     this.bufferBar     = document.getAnonymousElementByAttribute(binding, "anonid", "bufferBar");
                     this.scrubberStack = document.getAnonymousElementByAttribute(binding, "anonid", "scrubberStack");

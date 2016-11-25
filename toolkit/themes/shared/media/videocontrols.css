@@ -13,6 +13,10 @@ audio > xul|videocontrols {
   display: inline-block;
 }
 
+.controlsContainer {
+  --thumb-size: 13px;
+}
+
 .controlsContainer [hidden="true"],
 .controlBar[hidden] {
   display: none;
@@ -181,8 +185,8 @@ audio > xul|videocontrols {
 
 .volumeControl::-moz-range-thumb,
 .scrubber::-moz-range-thumb {
-  height: 13px;
-  width: 13px;
+  height: var(--thumb-size);
+  width: var(--thumb-size);
   border: none;
   border-radius: 50%;
   background-color: #ffffff;
@@ -203,7 +207,7 @@ audio > xul|videocontrols {
 
 .progressStack {
   position: relative;
-  width: 100%;
+  width: calc(100% - var(--thumb-size) / 2);
   height: 5px;
 }
 
@@ -269,24 +273,11 @@ audio > xul|videocontrols {
 }
 
 .scrubber::-moz-range-track,
-.scrubber::-moz-range-progress {
-  background-color: transparent;
-}
-
+.scrubber::-moz-range-progress,
 .volumeControl::-moz-range-progress,
 .volumeControl::-moz-range-track {
-  height: 5px;
-  border-radius: 2.5px;
+  background-color: transparent;
 }
-
-.volumeControl::-moz-range-progress {
-  background-color: #ffffff;
-}
-
-.volumeControl::-moz-range-track {
-  background-color: rgba(0,0,0,0.7);
-}
-
 
 .bufferBar::-moz-progress-bar {
   background-color: rgba(255,255,255,0.3);
@@ -295,6 +286,10 @@ audio > xul|videocontrols {
 
 .progressBar::-moz-progress-bar {
   background-color: #00b6f0;
+}
+
+.volumeBackground::-moz-meter-bar {
+  background-color: #ffffff;
 }
 
 .textTrackList {
