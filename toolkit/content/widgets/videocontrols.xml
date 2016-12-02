@@ -242,7 +242,7 @@
                     </div>
                     <span anonid="positionLabel" class="positionLabel" role="presentation"></span>
                     <span anonid="durationLabel" class="durationLabel" role="presentation"></span>
-                    <span anonid="positionDurationBox" class="positionDurationBox" aria-hidden="true">
+                    <span anonid="positionDurationBox" class="positionDurationBox monospace" aria-hidden="true">
                       &positionAndDuration.nameFormat;
                     </span>
                     <div anonid="controlBarSpacer" class="controlBarSpacer" hidden="true" role="none"></div>
@@ -268,6 +268,13 @@
 
         <constructor>
             <![CDATA[
+            /*
+            let frameLoader = this.QueryInterface(Components.interfaces.nsIFrameLoaderOwner).frameLoader;
+            this.docShell = frameLoader ? frameLoader.docShell : null;
+
+            const domWinUtils = this.docShell.QueryInterface(Components.interfaces.nsIInterfaceRequestor).
+              getInterface(Components.interfaces.nsIDOMWindowUtils);
+            */
             this.isTouchControls = false;
             this.randomID = 0;
 

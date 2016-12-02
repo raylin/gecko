@@ -13,6 +13,13 @@ audio > xul|videocontrols {
   display: inline-block;
 }
 
+@font-face {
+  font-family: NumberMonospace;
+  src: local(Courier);
+  unicode-range: U+30-39;
+  font-style: italic;
+}
+
 .controlsContainer [hidden="true"],
 .controlBar[hidden] {
   display: none;
@@ -346,6 +353,7 @@ audio > xul|videocontrols {
   padding-inline-end: 9px;
   white-space: nowrap;
   font: message-box;
+  font-family: NumberMonospace;
   font-size: 13px;
   font-size-adjust: 0.6;
   color: #ffffff;
