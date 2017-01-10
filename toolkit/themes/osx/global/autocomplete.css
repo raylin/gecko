@@ -172,3 +172,47 @@ toolbarpaletteitem > toolbaritem > textbox > hbox > hbox > html|*.textbox-input 
 toolbarpaletteitem > toolbaritem > * > textbox > hbox > hbox > html|*.textbox-input {
   visibility: hidden;
 }
+
+html|*.profile-item-box {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  min-height: 30px;
+  border-bottom: 1px solid #e9e9e9;
+  align-items: center;
+}
+
+html|*.profile-item-box:hover {
+  background-color: #F2F2F2;
+}
+
+html|*.profile-item-box[size="small"] {
+  flex-direction: column;
+}
+
+html|*.profile-item-box > html|*.profile-item-col {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 50%;
+}
+
+html|*.profile-item-box[size="small"] > html|*.profile-item-col {
+  width: 100%;
+}
+
+html|*.profile-item-box > html|*.profile-comment-col {
+  text-align: right;
+}
+
+html|*.profile-item-box > html|*.profile-item-col > html|*.profile-label {
+  padding-inline-start: 16px;
+  font-size: 13px;
+  color: #000000;
+}
+
+html|*.profile-item-box > html|*.profile-item-col > html|*.profile-comment {
+  padding-inline-end: 10px;
+  font-size: 10px;
+  color: #808080;
+}

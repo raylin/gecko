@@ -1375,7 +1375,11 @@ extends="chrome://global/content/bindings/popup.xml#popup">
 
             // The binding may have not been applied yet.
             setTimeout(() => {
-              let changed = item.adjustSiteIconStart(this._siteIconStart);
+              let changed = false;
+
+              if (typeof item.adjustSiteIconStart == "function") {
+                changed = item.adjustSiteIconStart(this._siteIconStart);
+              }
               if (changed) {
                 item.handleOverUnderflow();
               }
@@ -1524,6 +1528,63 @@ extends="chrome://global/content/bindings/popup.xml#popup">
         // recalculate an item's height and width.
         this.classList.add("forceHandleUnderflow");
       ]]></constructor>
+    </implementation>
+  </binding>
+
+  <binding id="autocomplete-profile-listitem" extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <xbl:content xmlns="http://www.w3.org/1999/xhtml">
+      <div anonid="profile-item-box" class="profile-item-box">
+        <div class="profile-label-col profile-item-col">
+          <span anonid="profile-label" class="profile-label"></span>
+        </div>
+        <div class="profile-comment-col profile-item-col">
+          <span anonid="profile-comment" class="profile-comment"></span>
+        </div>
+      </div>
+    </xbl:content>
+    <implementation implements="nsIDOMXULSelectControlItemElement">
+      <constructor>
+        <![CDATA[
+          this._itemBox = document.getAnonymousElementByAttribute(
+            this, "anonid", "profile-item-box"
+          );
+          this._label = document.getAnonymousElementByAttribute(
+            this, "anonid", "profile-label"
+          );
+          this._comment = document.getAnonymousElementByAttribute(
+            this, "anonid", "profile-comment"
+          );
+
+          this._adjustAcItem();
+        ]]>
+      </constructor>
+
+      <method name="_onOverflow">
+        <body></body>
+      </method>
+
+      <method name="_onUnderflow">
+        <body></body>
+      </method>
+
+      <method name="_adjustAcItem">
+        <body>
+        <![CDATA[
+          let outerBoxRect = this.parentNode.getBoundingClientRect();
+          let label = this.getAttribute("url");
+          let comment = this.getAttribute("title");
+
+          this._comment.textContent = comment;
+          this._label.textContent = label;
+
+          if (outerBoxRect.width <= 150) {
+            this._itemBox.setAttribute("size", "small");
+          } else {
+            this._itemBox.removeAttribute("size");
+          }
+        ]]>
+        </body>
+      </method>
     </implementation>
   </binding>
 

@@ -845,6 +845,10 @@ panel[type="autocomplete-richlistbox"] {
   overflow: -moz-hidden-unscrollable;
 }
 
+.autocomplete-richlistitem[type="autofill-profile"] {
+  -moz-binding: url("chrome://global/content/bindings/autocomplete.xml#autocomplete-profile-listitem");
+}
+
 %else
 
 textbox[type="autocomplete"] {
@@ -883,6 +887,10 @@ panel[type="autocomplete-richlistbox"] {
   -moz-binding: url("chrome://global/content/bindings/autocomplete.xml#autocomplete-richlistitem");
   -moz-box-orient: vertical;
   overflow: -moz-hidden-unscrollable;
+}
+
+.autocomplete-richlistitem[type="autofill-profile"] {
+  -moz-binding: url("chrome://global/content/bindings/autocomplete.xml#autocomplete-profile-listitem");
 }
 
 .autocomplete-treerows {

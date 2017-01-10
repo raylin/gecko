@@ -12,6 +12,12 @@
   padding: 0px 1px 0px 1px;
 }
 
+#PopupAutoComplete > richlistbox > richlistitem[originaltype="autofill-profile"] {
+  display: block;
+  height: auto;
+  min-height: auto;
+}
+
 #PopupAutoComplete > richlistbox > richlistitem > .ac-site-icon {
   margin-inline-start: 4px;
   margin-inline-end: 0;
