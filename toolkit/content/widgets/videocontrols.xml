@@ -212,6 +212,7 @@
       clickToPlay    : null,
       controlsOverlay : null,
       fullscreenButton : null,
+      layoutControls : null,
       currentTextTrackIndex: 0,
 
       textTracksCount: 0,
@@ -364,14 +365,7 @@
         // An event handler for |onresize| should be added when bug 227495 is fixed.
         this.controlBar.hidden = false;
 
-        let layoutControls = [
-          ...this.controlBar.children,
-          this.durationSpan,
-          this.controlBar,
-          this.clickToPlay
-        ];
-
-        for (let control of layoutControls) {
+        for (let control of this.layoutControls) {
           if (!control) {
             break;
           }
@@ -399,6 +393,7 @@
             resizedHandler: {
               value: () => {
                 control.minWidth = control.clientWidth;
+                console.log(control.minWidth);
               },
               writable: true
             },
@@ -1432,8 +1427,9 @@
       },
 
       setClosedCaptionButtonState() {
+        this.adjustControlSize();
+
         if (!this.isClosedCaptionAvailable) {
-          this.closedCaptionButton.setAttribute("hidden", "true");
           return;
         }
 
@@ -1444,7 +1440,6 @@
         } else {
           this.closedCaptionButton.removeAttribute("enabled");
         }
-        this.adjustControlSize();
 
         let ttItems = this.textTrackList.childNodes;
 
@@ -1605,9 +1600,24 @@
       },
 
       adjustControlSize() {
-        if (!this.controlBar.minWidth || this.videocontrols.isTouchControls) {
+        let hideState = this.isControlBarHidden;
+
+        if (this.layoutControls.some(e => e.resized)) {
+
+          this.controlBar.hidden = false;
+          for (let control of this.layoutControls) {
+            if (control.resized) {
+              control.resizedHandler();
+              control.resized = false;
+            }
+          }
+          this.controlBar.hidden = hideState;
+        }
+
+        if (this.videocontrols.isTouchControls) {
           return;
         }
+        console.log('start adjusting.....');
 
         let videoWidth = this.video.clientWidth;
         let videoHeight = this.video.clientHeight;
@@ -1639,11 +1649,6 @@
         let preventAppendControl = false;
 
         for (let control of prioritizedControls) {
-          if (!this.isControlBarHidden && control.resized && !control.hideByAdjustment) {
-            control.resizedHandler();
-            control.resized = false;
-          }
-
           if (!control.isWanted) {
             control.hideByAdjustment = true;
             continue;
@@ -1689,6 +1694,8 @@
           this.clickToPlay.style.width = `${clickToPlayScaledSize}px`;
           this.clickToPlay.style.height = `${clickToPlayScaledSize}px`;
         }
+
+        console.log(`still hide: ${hideState}`);
       },
 
       init(binding) {
@@ -1721,6 +1728,14 @@
         if (this.positionDurationBox) {
           this.durationSpan = this.positionDurationBox.getElementsByTagName("span")[0];
         }
+
+        this.layoutControls = [
+          ...this.controlBar.children,
+          this.durationSpan,
+          this.controlBar,
+          this.clickToPlay
+        ];
+
 
         // XXX controlsContainer is a desktop only element. To determine whether
         // isTouchControls or not during the whole initialization process, get
@@ -1760,7 +1775,14 @@
         addListener(this.controlsSpacer, "click", this.clickToPlayClickHandler);
         addListener(this.controlsSpacer, "dblclick", this.toggleFullscreen);
 
-        addListener(this.videocontrols, "resizevideocontrols", this.adjustControlSize);
+        addListener(this.videocontrols, "resizevideocontrols", () => {
+          console.log('resized....');
+          this.layoutControls.forEach(e => {
+            e.resized = (e.minWidth === 0);
+          });
+
+          this.adjustControlSize();
+        });
         addListener(this.videocontrols, "transitionend", this.onTransitionEnd);
         addListener(this.video.ownerDocument, "mozfullscreenchange", this.onFullscreenChange);
         addListener(this.controlBar, "transitionend", this.onControlBarTransitioned);
