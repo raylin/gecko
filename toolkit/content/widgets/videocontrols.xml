@@ -392,8 +392,11 @@
             },
             resizedHandler: {
               value: () => {
-                control.minWidth = control.clientWidth;
-                console.log(control.minWidth);
+                let size = control.getBoundingClientRect();
+
+                console.log(size);
+                control.minWidth = size.width;
+                control.minHeight = size.height;
               },
               writable: true
             },
@@ -1614,7 +1617,8 @@
           this.controlBar.hidden = hideState;
         }
 
-        if (this.videocontrols.isTouchControls) {
+        //if (this.videocontrols.isTouchControls) {
+        if (!this.controlBar.minWidth || this.videocontrols.isTouchControls) {
           return;
         }
         console.log('start adjusting.....');
