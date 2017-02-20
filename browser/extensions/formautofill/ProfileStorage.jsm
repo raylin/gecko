@@ -74,18 +74,24 @@ const VALID_FIELDS = [
 ];
 
 // TODO: Remove this once we can add profile from preference.
-const MOCK_MODE = false;
+const MOCK_MODE = true;
 const MOCK_STORAGE = [{
-  guid: "test-guid-1",
-  organization: "Sesame Street",
-  "street-address": "123 Sesame Street.",
-  tel: "1-345-345-3456",
+  organization: "World Wide Web Consortium",
+  "street-address": "32 Vassar Street\nMIT Room 32-G524",
+  "address-level2": "Cambridge",
+  "address-level1": "MA",
+  "postal-code": "02139",
+  country: "US",
+  tel: "+1 617 253 5702",
+  email: "timbl@w3.org",
 }, {
-  guid: "test-guid-2",
-  organization: "Mozilla",
-  "street-address": "331 E. Evelyn Avenue",
-  tel: "1-650-903-0800",
+  "street-address": "Some Address",
+  country: "US",
+}, {
+  "street-address": "Other Address",
+  "postal-code": "12345",
 }];
+
 
 function ProfileStorage(path) {
   this._path = path;
