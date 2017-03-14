@@ -1080,6 +1080,7 @@ void nsTextEditorState::Unlink()
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mEditor)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mRootNode)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mPlaceholderDiv)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK(mAutofillPreviewDiv)
 }
 
 void nsTextEditorState::Traverse(nsCycleCollectionTraversalCallback& cb)
@@ -1089,6 +1090,7 @@ void nsTextEditorState::Traverse(nsCycleCollectionTraversalCallback& cb)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mEditor)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mRootNode)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mPlaceholderDiv)
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mAutofillPreviewDiv)
 }
 
 nsFrameSelection*
@@ -2134,6 +2136,7 @@ nsTextEditorState::UnbindFromFrame(nsTextControlFrame* aFrame)
   // they're not actually destroyed.
   nsContentUtils::DestroyAnonymousContent(&mRootNode);
   nsContentUtils::DestroyAnonymousContent(&mPlaceholderDiv);
+  nsContentUtils::DestroyAnonymousContent(&mAutofillPreviewDiv);
 }
 
 nsresult
@@ -2250,6 +2253,43 @@ be called if @placeholder is the empty string when trimmed from line breaks");
 
   // initialize the text
   UpdatePlaceholderText(false);
+
+  return NS_OK;
+}
+
+nsresult
+nsTextEditorState::CreateAutofillPreviewNode()
+{
+  NS_ENSURE_TRUE(!mAutofillPreviewDiv, NS_ERROR_UNEXPECTED);
+  NS_ENSURE_ARG_POINTER(mBoundFrame);
+
+  nsIPresShell *shell = mBoundFrame->PresContext()->GetPresShell();
+  NS_ENSURE_TRUE(shell, NS_ERROR_FAILURE);
+
+  nsIDocument *doc = shell->GetDocument();
+  NS_ENSURE_TRUE(doc, NS_ERROR_FAILURE);
+
+  nsNodeInfoManager* pNodeInfoManager = doc->NodeInfoManager();
+  NS_ENSURE_TRUE(pNodeInfoManager, NS_ERROR_OUT_OF_MEMORY);
+
+  nsresult rv;
+
+  // Create a DIV for the placeholder
+  // and add it to the anonymous content child list
+  RefPtr<mozilla::dom::NodeInfo> nodeInfo;
+  nodeInfo = pNodeInfoManager->GetNodeInfo(nsGkAtoms::div, nullptr,
+                                           kNameSpaceID_XHTML,
+                                           nsIDOMNode::ELEMENT_NODE);
+
+  rv = NS_NewHTMLElement(getter_AddRefs(mAutofillPreviewDiv), nodeInfo.forget(),
+                         NOT_FROM_PARSER);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Create the text node for the placeholder text before doing anything else
+  RefPtr<nsTextNode> autofillPreviewText = new nsTextNode(pNodeInfoManager);
+
+  rv = mAutofillPreviewDiv->AppendChildTo(autofillPreviewText, false);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
 }
@@ -2630,7 +2670,7 @@ void
 nsTextEditorState::UpdatePlaceholderText(bool aNotify)
 {
   NS_ASSERTION(mPlaceholderDiv, "This function should not be called if "
-                                "mPlaceholderDiv isn't set");
+                                "mAutofillPreviewDiv isn't set");
 
   // If we don't have a placeholder div, there's nothing to do.
   if (!mPlaceholderDiv)
@@ -2643,6 +2683,27 @@ nsTextEditorState::UpdatePlaceholderText(bool aNotify)
   nsContentUtils::RemoveNewlines(placeholderValue);
   NS_ASSERTION(mPlaceholderDiv->GetFirstChild(), "placeholder div has no child");
   mPlaceholderDiv->GetFirstChild()->SetText(placeholderValue, aNotify);
+}
+
+void
+nsTextEditorState::UpdateAutofillPreviewText(const nsAString& aValue, bool aNotify)
+{
+  NS_ASSERTION(mAutofillPreviewDiv, "This function should not be called if "
+                                "mPlaceholderDiv isn't set");
+
+  // If we don't have a placeholder div, there's nothing to do.
+  if (!mAutofillPreviewDiv)
+    return;
+
+  nsAutoString autofillPreviewValue(aValue);
+
+  /*
+  nsCOMPtr<nsIContent> content = do_QueryInterface(mTextCtrlElement);
+  content->GetAttr(kNameSpaceID_None, nsGkAtoms::placeholder, placeholderValue);
+  */
+  nsContentUtils::RemoveNewlines(autofillPreviewValue);
+  NS_ASSERTION(mAutofillPreviewDiv->GetFirstChild(), "placeholder div has no child");
+  mAutofillPreviewDiv->GetFirstChild()->SetText(autofillPreviewValue, aNotify);
 }
 
 void

@@ -162,6 +162,7 @@ public:
   }
 
   NS_IMETHOD SetUserInput(const nsAString& aInput) override;
+  NS_IMETHOD SetUserInputPreview(const nsAString& aInput) override;
 
   // Overriden nsIFormControl methods
   NS_IMETHOD_(uint32_t) GetType() const override { return mType; }
@@ -234,7 +235,9 @@ public:
   NS_IMETHOD CreateEditor() override;
   NS_IMETHOD_(Element*) GetRootEditorNode() override;
   NS_IMETHOD_(Element*) CreatePlaceholderNode() override;
+  NS_IMETHOD_(Element*) CreateAutofillPreviewNode() override;
   NS_IMETHOD_(Element*) GetPlaceholderNode() override;
+  NS_IMETHOD_(Element*) GetAutofillPreviewNode() override;
   NS_IMETHOD_(void) UpdatePlaceholderVisibility(bool aNotify) override;
   NS_IMETHOD_(bool) GetPlaceholderVisibility() override;
   NS_IMETHOD_(void) InitializeKeyboardEventListeners() override;
@@ -842,6 +845,9 @@ public:
   nsIEditor* GetEditor();
 
   void SetUserInput(const nsAString& aInput,
+                    nsIPrincipal& aSubjectPrincipal);
+
+  void SetUserInputPreview(const nsAString& aInput,
                     nsIPrincipal& aSubjectPrincipal);
 
   // XPCOM GetPhonetic() is OK

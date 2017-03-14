@@ -303,9 +303,22 @@ HTMLTextAreaElement::CreatePlaceholderNode()
 }
 
 NS_IMETHODIMP_(Element*)
+HTMLTextAreaElement::CreateAutofillPreviewNode()
+{
+  NS_ENSURE_SUCCESS(mState.CreateAutofillPreviewNode(), nullptr);
+  return mState.GetAutofillPreviewNode();
+}
+
+NS_IMETHODIMP_(Element*)
 HTMLTextAreaElement::GetPlaceholderNode()
 {
   return mState.GetPlaceholderNode();
+}
+
+NS_IMETHODIMP_(Element*)
+HTMLTextAreaElement::GetAutofillPreviewNode()
+{
+  return mState.GetAutofillPreviewNode();
 }
 
 NS_IMETHODIMP_(void)
@@ -372,6 +385,12 @@ HTMLTextAreaElement::SetUserInput(const nsAString& aValue)
                           nsTextEditorState::eSetValue_BySetUserInput |
                           nsTextEditorState::eSetValue_Notify|
                           nsTextEditorState::eSetValue_MoveCursorToEnd);
+}
+
+NS_IMETHODIMP
+HTMLTextAreaElement::SetUserInputPreview(const nsAString& aValue)
+{
+  return NS_OK;
 }
 
 NS_IMETHODIMP

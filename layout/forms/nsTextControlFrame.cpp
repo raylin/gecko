@@ -367,6 +367,26 @@ nsTextControlFrame::CreateAnonymousContent(nsTArray<ContentInfo>& aElements)
     }
   }
 
+
+  // Create the preview node anonymous content if is marked as autofill field
+  if (true /* */) {
+    Element* autofillPreviewNode = txtCtrl->CreateAutofillPreviewNode();
+    NS_ENSURE_TRUE(autofillPreviewNode, NS_ERROR_OUT_OF_MEMORY);
+
+    // Associate ::placeholder pseudo-element with the placeholder node.
+    // placeholderNode->SetPseudoElementType(CSSPseudoElementType::placeholder);
+    aElements.AppendElement(autofillPreviewNode);
+
+    /*
+    if (!IsSingleLineTextControl()) {
+      // For textareas, UpdateValueDisplay doesn't initialize the visibility
+      // status of the placeholder because it returns early, so we have to
+      // do that manually here.
+      txtCtrl->UpdatePlaceholderVisibility(true);
+    }
+    */
+  }
+
   rv = UpdateValueDisplay(false);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -427,6 +447,10 @@ nsTextControlFrame::AppendAnonymousContentTo(nsTArray<nsIContent*>& aElements,
   if (placeholder && !(aFilter & nsIContent::eSkipPlaceholderContent))
     aElements.AppendElement(placeholder);
 
+  nsIContent* autofillPreview = txtCtrl->GetAutofillPreviewNode();
+  if (autofillPreview) {
+    aElements.AppendElement(autofillPreview);
+  }
 }
 
 nscoord

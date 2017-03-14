@@ -70,6 +70,7 @@ public:
     return nsGenericHTMLElement::GetEditor(aEditor);
   }
   NS_IMETHOD SetUserInput(const nsAString& aInput) override;
+  NS_IMETHOD SetUserInputPreview(const nsAString& aInput) override;
 
   // nsIFormControl
   NS_IMETHOD_(uint32_t) GetType() const override { return NS_FORM_TEXTAREA; }
@@ -103,7 +104,9 @@ public:
   NS_IMETHOD CreateEditor() override;
   NS_IMETHOD_(Element*) GetRootEditorNode() override;
   NS_IMETHOD_(Element*) CreatePlaceholderNode() override;
+  NS_IMETHOD_(Element*) CreateAutofillPreviewNode() override;
   NS_IMETHOD_(Element*) GetPlaceholderNode() override;
+  NS_IMETHOD_(Element*) GetAutofillPreviewNode() override;
   NS_IMETHOD_(void) UpdatePlaceholderVisibility(bool aNotify) override;
   NS_IMETHOD_(bool) GetPlaceholderVisibility() override;
   NS_IMETHOD_(void) InitializeKeyboardEventListeners() override;

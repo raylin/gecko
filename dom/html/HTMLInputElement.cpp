@@ -2889,6 +2889,61 @@ HTMLInputElement::SetUserInput(const nsAString& aValue)
   return NS_OK;
 }
 
+void
+HTMLInputElement::SetUserInputPreview(const nsAString& aInput,
+                               nsIPrincipal& aSubjectPrincipal) {
+  if (mType == NS_FORM_INPUT_FILE &&
+      !nsContentUtils::IsSystemPrincipal(&aSubjectPrincipal)) {
+    return;
+  }
+
+  SetUserInputPreview(aInput);
+}
+
+NS_IMETHODIMP
+HTMLInputElement::SetUserInputPreview(const nsAString& aValue)
+{
+
+  nsTextEditorState* state = GetEditorState();
+
+  if (state) {
+    state->UpdateAutofillPreviewText(aValue, true);
+  }
+
+  /*
+  if (mType == NS_FORM_INPUT_FILE)
+  {
+    Sequence<nsString> list;
+    if (!list.AppendElement(aValue, fallible)) {
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
+
+    ErrorResult rv;
+    MozSetFileNameArray(list, rv);
+    return rv.StealNSResult();
+  } else {
+    nsresult rv =
+      SetValueInternal(aValue, nsTextEditorState::eSetValue_BySetUserInput |
+                               nsTextEditorState::eSetValue_Notify);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  nsContentUtils::DispatchTrustedEvent(OwnerDoc(),
+                                       static_cast<nsIDOMHTMLInputElement*>(this),
+                                       NS_LITERAL_STRING("input"), true,
+                                       true);
+
+
+  // If this element is not currently focused, it won't receive a change event for this
+  // update through the normal channels. So fire a change event immediately, instead.
+  if (!ShouldBlur(this)) {
+    FireChangeEventIfNeeded();
+  }
+  */
+
+  return NS_OK;
+}
+
 nsIEditor*
 HTMLInputElement::GetEditor()
 {
@@ -2976,11 +3031,32 @@ HTMLInputElement::CreatePlaceholderNode()
 }
 
 NS_IMETHODIMP_(Element*)
+HTMLInputElement::CreateAutofillPreviewNode()
+{
+  nsTextEditorState* state = GetEditorState();
+  if (state) {
+    NS_ENSURE_SUCCESS(state->CreateAutofillPreviewNode(), nullptr);
+    return state->GetAutofillPreviewNode();
+  }
+  return nullptr;
+}
+
+NS_IMETHODIMP_(Element*)
 HTMLInputElement::GetPlaceholderNode()
 {
   nsTextEditorState* state = GetEditorState();
   if (state) {
     return state->GetPlaceholderNode();
+  }
+  return nullptr;
+}
+
+NS_IMETHODIMP_(Element*)
+HTMLInputElement::GetAutofillPreviewNode()
+{
+  nsTextEditorState* state = GetEditorState();
+  if (state) {
+    return state->GetAutofillPreviewNode();
   }
   return nullptr;
 }

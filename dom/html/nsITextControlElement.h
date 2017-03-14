@@ -150,9 +150,20 @@ public:
   NS_IMETHOD_(mozilla::dom::Element*) CreatePlaceholderNode() = 0;
 
   /**
+   * Create the placeholder anonymous node for the text control and returns it.
+   */
+  NS_IMETHOD_(mozilla::dom::Element*) CreateAutofillPreviewNode() = 0;
+
+  /**
    * Get the placeholder anonymous node for the text control.
    */
   NS_IMETHOD_(mozilla::dom::Element*) GetPlaceholderNode() = 0;
+
+  /**
+   * Get the placeholder anonymous node for the text control.
+   */
+  NS_IMETHOD_(mozilla::dom::Element*) GetAutofillPreviewNode() = 0;
+
 
   /**
    * Initialize the keyboard event listeners.

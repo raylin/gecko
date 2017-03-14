@@ -97,4 +97,7 @@ partial interface HTMLTextAreaElement {
   // element.
   [ChromeOnly]
   void setUserInput(DOMString input);
+
+  [ChromeOnly]
+  void setUserInputPreview(DOMString input);
 };

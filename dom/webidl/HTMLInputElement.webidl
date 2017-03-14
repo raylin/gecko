@@ -198,6 +198,9 @@ partial interface HTMLInputElement {
   // for example will be dispatched when focusing out the element.
   [Func="IsChromeOrXBL", NeedsSubjectPrincipal]
   void setUserInput(DOMString input);
+
+  [Func="IsChromeOrXBL", NeedsSubjectPrincipal]
+  void setUserInputPreview(DOMString input);
 };
 
 partial interface HTMLInputElement {

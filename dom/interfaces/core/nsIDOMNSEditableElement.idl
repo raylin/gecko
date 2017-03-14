@@ -25,4 +25,5 @@ interface nsIDOMNSEditableElement : nsISupports
   // 'change' event for example will be dispatched when focusing out the
   // element.
   [noscript] void setUserInput(in DOMString input);
+  [noscript] void setUserInputPreview(in DOMString input);
 };

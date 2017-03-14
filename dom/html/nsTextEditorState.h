@@ -170,12 +170,16 @@ public:
   bool IsEmpty() const { return mValue ? mValue->IsEmpty() : true; }
 
   nsresult CreatePlaceholderNode();
+  nsresult CreateAutofillPreviewNode();
 
   mozilla::dom::Element* GetRootNode() {
     return mRootNode;
   }
   mozilla::dom::Element* GetPlaceholderNode() {
     return mPlaceholderDiv;
+  }
+  mozilla::dom::Element* GetAutofillPreviewNode() {
+    return mAutofillPreviewDiv;
   }
 
   bool IsSingleLineTextControl() const {
@@ -205,7 +209,12 @@ public:
   bool GetPlaceholderVisibility() {
     return mPlaceholderVisibility;
   }
+  bool GetAutofillPreviewVisibility() {
+    return mAutofillPreviewVisibility;
+  }
+
   void UpdatePlaceholderText(bool aNotify);
+  void UpdateAutofillPreviewText(const nsAString& aValue, bool aNotify);
 
   /**
    * Get the maxlength attribute
@@ -408,6 +417,7 @@ private:
   nsCOMPtr<nsIEditor> mEditor;
   nsCOMPtr<mozilla::dom::Element> mRootNode;
   nsCOMPtr<mozilla::dom::Element> mPlaceholderDiv;
+  nsCOMPtr<mozilla::dom::Element> mAutofillPreviewDiv;
   nsTextControlFrame* mBoundFrame;
   RefPtr<nsTextInputListener> mTextListener;
   mozilla::Maybe<nsString> mValue;
@@ -426,6 +436,7 @@ private:
   bool mSelectionCached; // Whether mSelectionProperties is valid
   mutable bool mSelectionRestoreEagerInit; // Whether we're eager initing because of selection restore
   bool mPlaceholderVisibility;
+  bool mAutofillPreviewVisibility;
   bool mIsCommittingComposition;
 };
 
