@@ -1182,6 +1182,7 @@ HTMLInputElement::HTMLInputElement(already_AddRefed<mozilla::dom::NodeInfo>& aNo
   , mNumberControlSpinnerSpinsUp(false)
   , mPickerRunning(false)
   , mSelectionCached(true)
+  , mCanShowAutofillPreview(false)
 {
   // We are in a type=text so we now we currenty need a nsTextEditorState.
   mInputData.mState = new nsTextEditorState(this);
@@ -2889,6 +2890,24 @@ HTMLInputElement::SetUserInput(const nsAString& aValue)
   return NS_OK;
 }
 
+NS_IMETHODIMP_(void)
+HTMLInputElement::EnableAutofillPreview(bool aEnable)
+{
+  bool originalEnableValue = mCanShowAutofillPreview;
+
+  mCanShowAutofillPreview = aEnable;
+
+  if (originalEnableValue != mCanShowAutofillPreview) {
+    nsLayoutUtils::PostRestyleEvent(this, nsRestyleHint(0), nsChangeHint_ReconstructFrame);
+  }
+}
+
+NS_IMETHODIMP_(bool)
+HTMLInputElement::IsAutofillPreviewEnabled()
+{
+  return mCanShowAutofillPreview;
+}
+
 void
 HTMLInputElement::SetUserInputPreview(const nsAString& aInput,
                                nsIPrincipal& aSubjectPrincipal) {
@@ -2906,40 +2925,9 @@ HTMLInputElement::SetUserInputPreview(const nsAString& aValue)
 
   nsTextEditorState* state = GetEditorState();
 
-  if (state) {
+  if (state && mType != NS_FORM_INPUT_FILE) {
     state->UpdateAutofillPreviewText(aValue, true);
   }
-
-  /*
-  if (mType == NS_FORM_INPUT_FILE)
-  {
-    Sequence<nsString> list;
-    if (!list.AppendElement(aValue, fallible)) {
-      return NS_ERROR_OUT_OF_MEMORY;
-    }
-
-    ErrorResult rv;
-    MozSetFileNameArray(list, rv);
-    return rv.StealNSResult();
-  } else {
-    nsresult rv =
-      SetValueInternal(aValue, nsTextEditorState::eSetValue_BySetUserInput |
-                               nsTextEditorState::eSetValue_Notify);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-
-  nsContentUtils::DispatchTrustedEvent(OwnerDoc(),
-                                       static_cast<nsIDOMHTMLInputElement*>(this),
-                                       NS_LITERAL_STRING("input"), true,
-                                       true);
-
-
-  // If this element is not currently focused, it won't receive a change event for this
-  // update through the normal channels. So fire a change event immediately, instead.
-  if (!ShouldBlur(this)) {
-    FireChangeEventIfNeeded();
-  }
-  */
 
   return NS_OK;
 }

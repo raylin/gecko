@@ -62,6 +62,7 @@ HTMLTextAreaElement::HTMLTextAreaElement(already_AddRefed<mozilla::dom::NodeInfo
     mDisabledChanged(false),
     mCanShowInvalidUI(true),
     mCanShowValidUI(true),
+    mCanShowAutofillPreview(false),
     mState(this)
 {
   AddMutationObserver(this);
@@ -293,6 +294,18 @@ NS_IMETHODIMP_(Element*)
 HTMLTextAreaElement::GetRootEditorNode()
 {
   return mState.GetRootNode();
+}
+
+NS_IMETHODIMP_(void)
+HTMLTextAreaElement::EnableAutofillPreview(bool aEnable)
+{
+  mCanShowAutofillPreview = aEnable;
+}
+
+NS_IMETHODIMP_(bool)
+HTMLTextAreaElement::IsAutofillPreviewEnabled()
+{
+  return mCanShowAutofillPreview;
 }
 
 NS_IMETHODIMP_(Element*)

@@ -109,6 +109,7 @@ nsTextControlFrame::nsTextControlFrame(nsStyleContext* aContext)
   , mEditorHasBeenInitialized(false)
   , mIsProcessing(false)
   , mUsePlaceholder(false)
+  , mUseAutofillPreview(false)
 #ifdef DEBUG
   , mInEditorInitialization(false)
 #endif
@@ -367,14 +368,13 @@ nsTextControlFrame::CreateAnonymousContent(nsTArray<ContentInfo>& aElements)
     }
   }
 
+  mUseAutofillPreview = txtCtrl->IsAutofillPreviewEnabled();
 
   // Create the preview node anonymous content if is marked as autofill field
-  if (true /* */) {
+  if (mUseAutofillPreview) {
     Element* autofillPreviewNode = txtCtrl->CreateAutofillPreviewNode();
     NS_ENSURE_TRUE(autofillPreviewNode, NS_ERROR_OUT_OF_MEMORY);
 
-    // Associate ::placeholder pseudo-element with the placeholder node.
-    // placeholderNode->SetPseudoElementType(CSSPseudoElementType::placeholder);
     aElements.AppendElement(autofillPreviewNode);
 
     /*

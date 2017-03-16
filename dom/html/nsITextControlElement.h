@@ -150,7 +150,18 @@ public:
   NS_IMETHOD_(mozilla::dom::Element*) CreatePlaceholderNode() = 0;
 
   /**
-   * Create the placeholder anonymous node for the text control and returns it.
+   * Enable autofill preview ability for the text control.
+   */
+  NS_IMETHOD_(void) EnableAutofillPreview(bool aEnable) = 0;
+
+  /**
+   * Enable autofill preview ability for the text control.
+   */
+  NS_IMETHOD_(bool) IsAutofillPreviewEnabled() = 0;
+
+
+  /**
+   * Create the autofill preview anonymous node for the text control and returns it.
    */
   NS_IMETHOD_(mozilla::dom::Element*) CreateAutofillPreviewNode() = 0;
 

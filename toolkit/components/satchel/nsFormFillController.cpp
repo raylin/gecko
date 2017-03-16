@@ -320,9 +320,11 @@ nsFormFillController::MarkAsAutofillField(nsIDOMHTMLInputElement *aInput)
   if (mAutofillInputs.Get(node)) {
     return NS_OK;
   }
+  nsCOMPtr<nsITextControlElement> txtCtrl = do_QueryInterface(node);
 
   mAutofillInputs.Put(node, true);
   node->AddMutationObserverUnlessExists(this);
+  txtCtrl->EnableAutofillPreview(true);
 
   nsFocusManager *fm = nsFocusManager::GetFocusManager();
   if (fm) {

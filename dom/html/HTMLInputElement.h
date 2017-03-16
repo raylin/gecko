@@ -234,6 +234,8 @@ public:
   NS_IMETHOD_(void) UnbindFromFrame(nsTextControlFrame* aFrame) override;
   NS_IMETHOD CreateEditor() override;
   NS_IMETHOD_(Element*) GetRootEditorNode() override;
+  NS_IMETHOD_(void) EnableAutofillPreview(bool aEnable) override;
+  NS_IMETHOD_(bool) IsAutofillPreviewEnabled() override;
   NS_IMETHOD_(Element*) CreatePlaceholderNode() override;
   NS_IMETHOD_(Element*) CreateAutofillPreviewNode() override;
   NS_IMETHOD_(Element*) GetPlaceholderNode() override;
@@ -1638,6 +1640,7 @@ protected:
   bool                     mNumberControlSpinnerSpinsUp : 1;
   bool                     mPickerRunning : 1;
   bool                     mSelectionCached : 1;
+  bool                     mCanShowAutofillPreview : 1;
 
 private:
   static void MapAttributesIntoRule(const nsMappedAttributes* aAttributes,

@@ -2274,7 +2274,7 @@ nsTextEditorState::CreateAutofillPreviewNode()
 
   nsresult rv;
 
-  // Create a DIV for the placeholder
+  // Create a DIV for the autofill preview
   // and add it to the anonymous content child list
   RefPtr<mozilla::dom::NodeInfo> nodeInfo;
   nodeInfo = pNodeInfoManager->GetNodeInfo(nsGkAtoms::div, nullptr,
@@ -2283,6 +2283,13 @@ nsTextEditorState::CreateAutofillPreviewNode()
 
   rv = NS_NewHTMLElement(getter_AddRefs(mAutofillPreviewDiv), nodeInfo.forget(),
                          NOT_FROM_PARSER);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsAutoString classValue;
+  classValue.AppendLiteral("autofill-preview-div");
+
+  rv = mAutofillPreviewDiv->SetAttr(kNameSpaceID_None, nsGkAtoms::_class,
+                                   classValue, false);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Create the text node for the placeholder text before doing anything else
