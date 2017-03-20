@@ -1104,6 +1104,7 @@ void nsTextEditorState::Unlink()
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mEditor)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mRootNode)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mPlaceholderDiv)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK(mPreviewDiv)
 }
 
 void nsTextEditorState::Traverse(nsCycleCollectionTraversalCallback& cb)
@@ -1113,6 +1114,7 @@ void nsTextEditorState::Traverse(nsCycleCollectionTraversalCallback& cb)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mEditor)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mRootNode)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mPlaceholderDiv)
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mPreviewDiv)
 }
 
 nsFrameSelection*
@@ -2158,6 +2160,7 @@ nsTextEditorState::UnbindFromFrame(nsTextControlFrame* aFrame)
   // they're not actually destroyed.
   nsContentUtils::DestroyAnonymousContent(&mRootNode);
   nsContentUtils::DestroyAnonymousContent(&mPlaceholderDiv);
+  nsContentUtils::DestroyAnonymousContent(&mPreviewDiv);
 }
 
 nsresult
@@ -2274,6 +2277,50 @@ be called if @placeholder is the empty string when trimmed from line breaks");
 
   // initialize the text
   UpdatePlaceholderText(false);
+
+  return NS_OK;
+}
+
+nsresult
+nsTextEditorState::CreatePreviewNode()
+{
+  NS_ENSURE_TRUE(!mPreviewDiv, NS_ERROR_UNEXPECTED);
+  NS_ENSURE_ARG_POINTER(mBoundFrame);
+
+  nsIPresShell *shell = mBoundFrame->PresContext()->GetPresShell();
+  NS_ENSURE_TRUE(shell, NS_ERROR_FAILURE);
+
+  nsIDocument *doc = shell->GetDocument();
+  NS_ENSURE_TRUE(doc, NS_ERROR_FAILURE);
+
+  nsNodeInfoManager* pNodeInfoManager = doc->NodeInfoManager();
+  NS_ENSURE_TRUE(pNodeInfoManager, NS_ERROR_OUT_OF_MEMORY);
+
+  nsresult rv;
+
+  // Create a DIV for the preview
+  // and add it to the anonymous content child list
+  RefPtr<mozilla::dom::NodeInfo> nodeInfo;
+  nodeInfo = pNodeInfoManager->GetNodeInfo(nsGkAtoms::div, nullptr,
+                                           kNameSpaceID_XHTML,
+                                           nsIDOMNode::ELEMENT_NODE);
+
+  rv = NS_NewHTMLElement(getter_AddRefs(mPreviewDiv), nodeInfo.forget(),
+                         NOT_FROM_PARSER);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsAutoString classValue;
+  classValue.AppendLiteral("preview-div");
+
+  rv = mPreviewDiv->SetAttr(kNameSpaceID_None, nsGkAtoms::_class,
+                                    classValue, false);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Create the text node for the preview text before doing anything else
+  RefPtr<nsTextNode> previewText = new nsTextNode(pNodeInfoManager);
+
+  rv = mPreviewDiv->AppendChildTo(previewText, false);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
 }
