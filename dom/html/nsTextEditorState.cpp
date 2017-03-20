@@ -2717,6 +2717,40 @@ nsTextEditorState::UpdatePlaceholderText(bool aNotify)
 }
 
 void
+nsTextEditorState::SetPreviewText(const nsAString& aValue, bool aNotify)
+{
+  NS_ASSERTION(mPreviewDiv, "This function should not be called if "
+                                "mPreviewDiv isn't set");
+
+  // If we don't have a preview div, there's nothing to do.
+  if (!mPreviewDiv)
+    return;
+
+  nsAutoString previewValue(aValue);
+
+  nsContentUtils::RemoveNewlines(previewValue);
+  NS_ASSERTION(mPreviewDiv->GetFirstChild(), "preview div has no child");
+  mPreviewDiv->GetFirstChild()->SetText(previewValue, aNotify);
+}
+
+void
+nsTextEditorState::GetPreviewText(nsAString& aValue)
+{
+  NS_ASSERTION(mPreviewDiv, "This function should not be called if "
+                                "mPreviewDiv isn't set");
+
+  // If we don't have a preview div, there's nothing to do.
+  if (!mPreviewDiv)
+    return;
+
+  NS_ASSERTION(mPreviewDiv->GetFirstChild(), "preview div has no child");
+  const nsTextFragment *text = mPreviewDiv->GetFirstChild()->GetText();
+
+  aValue.Truncate();
+  text->AppendTo(aValue);
+}
+
+void
 nsTextEditorState::UpdatePlaceholderVisibility(bool aNotify)
 {
   nsAutoString value;

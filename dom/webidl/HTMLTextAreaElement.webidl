@@ -82,6 +82,9 @@ partial interface HTMLTextAreaElement {
 
   [Throws, ChromeOnly]
   readonly attribute MozControllers controllers;
+
+  [ChromeOnly]
+  attribute DOMString previewValue;
 };
 
 partial interface HTMLTextAreaElement {

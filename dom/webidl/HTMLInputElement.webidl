@@ -184,6 +184,9 @@ partial interface HTMLInputElement {
   // This function will return null if @autocomplete is not defined for the
   // current @type
   AutocompleteInfo? getAutocompleteInfo();
+
+  [ChromeOnly]
+  attribute DOMString previewValue;
 };
 
 partial interface HTMLInputElement {
