@@ -339,6 +339,7 @@ private:
   bool mIsProcessing;
   // Keep track if we have asked a placeholder node creation.
   bool mUsePlaceholder;
+  bool mUsePreview;
 
 #ifdef DEBUG
   bool mInEditorInitialization;

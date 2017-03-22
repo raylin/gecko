@@ -62,6 +62,7 @@ HTMLTextAreaElement::HTMLTextAreaElement(already_AddRefed<mozilla::dom::NodeInfo
     mDisabledChanged(false),
     mCanShowInvalidUI(true),
     mCanShowValidUI(true),
+    mIsPreviewEnabled(false),
     mState(this)
 {
   AddMutationObserver(this);
@@ -343,6 +344,23 @@ NS_IMETHODIMP_(void)
 HTMLTextAreaElement::GetPreviewValue(nsAString& aValue)
 {
   mState.GetPreviewText(aValue);
+}
+
+NS_IMETHODIMP_(void)
+HTMLTextAreaElement::EnablePreview()
+{
+  if (mIsPreviewEnabled) {
+    return;
+  }
+
+  mIsPreviewEnabled = true;
+  nsLayoutUtils::PostRestyleEvent(this, nsRestyleHint(0), nsChangeHint_ReconstructFrame);
+}
+
+NS_IMETHODIMP_(bool)
+HTMLTextAreaElement::IsPreviewEnabled()
+{
+  return mIsPreviewEnabled;
 }
 
 nsresult
