@@ -2731,6 +2731,8 @@ nsTextEditorState::SetPreviewText(const nsAString& aValue, bool aNotify)
   nsContentUtils::RemoveNewlines(previewValue);
   NS_ASSERTION(mPreviewDiv->GetFirstChild(), "preview div has no child");
   mPreviewDiv->GetFirstChild()->SetText(previewValue, aNotify);
+
+  UpdatePlaceholderVisibility(aNotify);
 }
 
 void
@@ -2753,10 +2755,11 @@ nsTextEditorState::GetPreviewText(nsAString& aValue)
 void
 nsTextEditorState::UpdatePlaceholderVisibility(bool aNotify)
 {
-  nsAutoString value;
+  nsAutoString value, previewValue;
   GetValue(value, true);
+  GetPreviewText(previewValue);
 
-  mPlaceholderVisibility = value.IsEmpty();
+  mPlaceholderVisibility = value.IsEmpty() && previewValue.IsEmpty();
 
   if (mPlaceholderVisibility &&
       !Preferences::GetBool("dom.placeholder.show_on_focus", true)) {
