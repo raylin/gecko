@@ -166,7 +166,9 @@ textarea > scrollbar {
 textarea > .anonymous-div,
 input > .anonymous-div,
 input::placeholder,
-textarea::placeholder {
+textarea::placeholder,
+input > .preview-div
+textarea > .preview-div {
   overflow: auto;
   border: 0px !important;
   padding: inherit !important;
@@ -182,7 +184,8 @@ textarea::placeholder {
 }
 
 input > .anonymous-div,
-input::placeholder {
+input::placeholder,
+input > .preview-div {
   white-space: pre;
 }
 
@@ -199,7 +202,9 @@ input > .anonymous-div.inherit-scroll-behavior {
 }
 
 input::placeholder,
-textarea::placeholder {
+textarea::placeholder,
+input > .preview-div,
+textarea > .preview-div {
   /*
    * Changing display to inline can leads to broken behaviour and will assert.
    */
@@ -221,7 +226,13 @@ textarea::placeholder {
   opacity: 0.54;
 }
 
-textarea::placeholder {
+input > .preview-div,
+textarea > .preview-div {
+  opacity: unset;
+}
+
+textarea::placeholder,
+textarea > .preview-div {
   white-space: pre-wrap !important;
 }
 
