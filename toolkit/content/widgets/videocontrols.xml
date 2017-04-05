@@ -1858,6 +1858,7 @@
         addListener(this.controlBar, "transitionend", this.onControlBarTransitioned);
         addListener(this.video.ownerDocument, "fullscreenchange", this.onFullscreenChange);
         addListener(this.video, "keypress", this.keyHandler, true);
+        addListener(this.video, "wheel", e => e.stopPropagation(), true);
 
         addListener(this.videocontrols, "dragstart", function(event) {
           event.preventDefault(); // prevent dragging of controls image (bug 517114)
