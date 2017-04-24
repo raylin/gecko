@@ -29,6 +29,8 @@ FormAutofillUtils.defineLazyLogGetter(this, this.EXPORTED_SYMBOLS[0]);
 function FormAutofillHandler(form) {
   this.form = form;
   this.fieldDetails = [];
+  this.winUtils = this.form.rootElement.ownerGlobal.QueryInterface(Ci.nsIInterfaceRequestor)
+    .getInterface(Ci.nsIDOMWindowUtils);
 }
 
 FormAutofillHandler.prototype = {
@@ -56,6 +58,23 @@ FormAutofillHandler.prototype = {
    * String of the filled profile's guid.
    */
   filledProfileGUID: null,
+
+  /**
+   * A WindowUtils reference of which Window the form belongs
+   */
+  winUtils: null,
+
+  /**
+   * Enum for form autofill MANUALLY_MANAGED_STATES values
+   */
+  fieldStateEnum: {
+    // not themed
+    NORMAL: null,
+    // highlighted
+    AUTO_FILLED: "-moz-autofill",
+    // highlighted && grey color text
+    PREVIEW: "-moz-autofill-preview",
+  },
 
   /**
    * Set fieldDetails from the form about fields that can be autofilled.
@@ -86,13 +105,17 @@ FormAutofillHandler.prototype = {
       // 3. the invalid value set
 
       let element = fieldDetail.elementWeakRef.get();
-      if (!element || element === focusedInput || element.value) {
+      if (!element || element.value) {
         continue;
       }
 
       let value = profile[fieldDetail.fieldName];
       if (value) {
-        element.setUserInput(value);
+        if (element !== focusedInput) {
+          element.setUserInput(value);
+        }
+
+        this.transitionFieldState(fieldDetail, "AUTO_FILLED");
       }
     }
   },
@@ -105,32 +128,73 @@ FormAutofillHandler.prototype = {
    */
   previewFormFields(profile) {
     log.debug("preview profile in autofillFormFields:", profile);
-    /*
+
     for (let fieldDetail of this.fieldDetails) {
+      let element = fieldDetail.elementWeakRef.get();
       let value = profile[fieldDetail.fieldName] || "";
 
-      // Skip the fields that already has text entered
-      if (fieldDetail.element.value) {
+      // Skip the field that is null or already has text entered
+      if (!element || element.value) {
         continue;
       }
 
-      // TODO: Set highlight style and preview text.
+      element.previewValue = value;
+      this.transitionFieldState(fieldDetail, value ? "PREVIEW": "NORMAL");
     }
-    */
   },
 
+  /**
+   * Clear preview text and background highlight of all fields.
+   */
   clearPreviewedFormFields() {
     log.debug("clear previewed fields in:", this.form);
-    /*
-    for (let fieldDetail of this.fieldDetails) {
-      // TODO: Clear preview text
 
-      // We keep the highlight of all fields if this form has
-      // already been auto-filled with a profile.
-      if (this.filledProfileGUID == null) {
-        // TODO: Remove highlight style
+    for (let fieldDetail of this.fieldDetails) {
+      let element = fieldDetail.elementWeakRef.get();
+
+      element.previewValue = "";
+
+      // We keep the state if this field has
+      // already been auto-filled.
+      if (fieldDetail.state === "AUTO_FILLED") {
+        continue;
+      }
+
+      this.transitionFieldState(fieldDetail, "NORMAL")
+    }
+  },
+
+  /**
+   * Transition the state of a field to correspond with different presentations.
+   *
+   * @param {Object} fieldDetail
+   *        A fieldDetail of which its element is about to update the state.
+   * @param {string} nextState
+   *        Used to determine the next state to transition.
+   */
+  transitionFieldState(fieldDetail, nextState) {
+    let element = fieldDetail.elementWeakRef.get();
+
+    if (!element || !(nextState in this.fieldStateEnum)) {
+      log.warn(fieldDetail.fieldName, "is unreachable while state transition");
+      return;
+    }
+
+    for (let state in this.fieldStateEnum) {
+      let mmState = this.fieldStateEnum[state];
+
+      // Do nothing if mmState is null, i.e. NORMAL state
+      if (!mmState) {
+        continue;
+      }
+
+      if (state === nextState) {
+        this.winUtils.addManuallyManagedState(element, mmState);
+      } else {
+        this.winUtils.removeManuallyManagedState(element, mmState);
       }
     }
-    */
+
+    fieldDetail.state = nextState;
   },
 };
