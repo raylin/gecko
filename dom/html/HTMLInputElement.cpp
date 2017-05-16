@@ -4898,7 +4898,8 @@ HTMLInputElement::PostHandleEvent(EventChainPostVisitor& aVisitor)
               }
             } else if (mType == NS_FORM_INPUT_RANGE &&
                        nsContentUtils::IsFocusedContent(this) &&
-                       GetMinimum() < GetMaximum()) {
+                       GetMinimum() < GetMaximum() && 
+                       (!IsInNativeAnonymousSubtree() || IsInChromeDocument())) {
               Decimal value = GetValueAsDecimal();
               Decimal step = GetStep();
               if (step == kStepAny) {
