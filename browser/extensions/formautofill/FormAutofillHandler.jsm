@@ -118,6 +118,38 @@ FormAutofillHandler.prototype = {
         this.transitionFieldState(fieldDetail, "AUTO_FILLED");
       }
     }
+
+    // SetUserInput asynchronously dispatches input event, so we add a one time
+    // listener for auto-filled first and then regisiter another listener to watch
+    // if any modification made by user and be in charge of hightlight handling.
+    this.form.rootElement.addEventListener("input", e => {
+      log.debug("register change handler for auto-filled form:", this.form);
+
+      const onChangeHandler = e => {
+        let filledCount = 0;
+
+        for (let fieldDetail of this.fieldDetails) {
+          let element = fieldDetail.elementWeakRef.get();
+
+          if (e.target === element || e.type === "reset") {
+            this.transitionFieldState(fieldDetail, "NORMAL");
+          }
+
+          if (fieldDetail.state === "AUTO_FILLED") {
+            filledCount++;
+          }
+        };
+
+        // unregister listeners once no fields is in AUTO_FILLED state.
+        if (filledCount === 0) {
+          this.form.rootElement.removeEventListener("input", onChangeHandler, {mozSystemGroup: true});
+          this.form.rootElement.removeEventListener("reset", onChangeHandler, {mozSystemGroup: true});
+        }
+      }
+
+      this.form.rootElement.addEventListener("input", onChangeHandler, {mozSystemGroup: true});
+      this.form.rootElement.addEventListener("reset", onChangeHandler, {mozSystemGroup: true});
+    }, {mozSystemGroup: true, once: true});
   },
 
   /**
