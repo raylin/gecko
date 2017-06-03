@@ -388,19 +388,7 @@
               writable: true
             },
             resized: {
-              value: false,
-              writable: true
-            },
-            resizedHandler: {
-              value: () => {
-                let width = control.clientWidth;
-
-                if (width === 0) {
-                  return;
-                }
-
-                control.minWidth = width;
-              },
+              value: true,
               writable: true
             },
             hideByAdjustment: {
@@ -427,15 +415,11 @@
         this.volumeStack.minWidth = 48;
         this.clickToPlay.minWidth = 48;
 
-        if (this.positionDurationBox) {
-          this.positionDurationBox.resizedHandler = () => {
-            let durationWidth = this.durationSpan.hideByAdjustment ? 0 : this.durationSpan.clientWidth;
-
-            this.positionDurationBox.minWidth = this.positionDurationBox.clientWidth - durationWidth;
-          };
-
-          this.positionDurationBox.resized = true;
-        }
+        this.durationLabel.resized = false;
+        this.positionLabel.resized = false;
+        this.scrubberStack.resized = false;
+        this.volumeStack.resized = false;
+        this.clickToPlay.resized = false;
 
         this.adjustControlSize();
         this.controlBar.hidden = true;
@@ -1177,26 +1161,6 @@
         element.hidden = true;
       },
 
-      onVideoControlsResized() {
-        // Do not adjust again if resize event is caused by adjustControls(). Audio
-        // might be resized by adjustControls(), so we should skip this handler if
-        // current size is the same as the adjusted size.
-        let {width, height} = this.video.getBoundingClientRect();
-        if (width === this.adjustedVideoSize.width && height === this.adjustedVideoSize.height) {
-          return;
-        }
-
-        // For the controls which haven't got correct computed size yet, force
-        // them to re-cache their minWidth when the media is resized (reflow).
-        this.layoutControls.forEach(control => {
-          if (control) {
-            control.resized = control.resized || (control.minWidth === 0);
-          }
-        });
-
-        this.adjustControlSize();
-      },
-
       _triggeredByControls: false,
 
       startPlay() {
@@ -1666,25 +1630,26 @@
       },
 
       controlBarMinHeight: 40,
-      adjustedVideoSize: {},
       adjustControlSize() {
         if (this.videocontrols.isTouchControls) {
           return;
         }
 
-        let controlHidden = this.isControlBarHidden;
+        const rand = Math.floor(Math.random() * 1000);
 
-        if (this.layoutControls.some(control => control.resized)) {
-          this.controlBar.hidden = false;
+        this.fullscreenButton.isWanted = !this.controlBar.hasAttribute("fullscreen-unavailable");
+        this.closedCaptionButton.isWanted = this.isClosedCaptionAvailable;
+        this.volumeStack.isWanted = !this.muteButton.hasAttribute("noAudio");
 
-          for (let control of this.layoutControls) {
-            if (control.resized && !control.hideByAdjustment) {
-              control.resizedHandler();
-              control.resized = false;
-            }
+        const isLabelUpdated = this.positionDurationBox.resized;
+        for (const control of this.layoutControls) {
+          const controlWidth = control.clientWidth;
+
+          if (controlWidth === 0 || !control.resized) {
+            continue;
           }
-
-          this.controlBar.hidden = controlHidden;
+          control.minWidth = controlWidth;
+          control.resized = false;
         }
 
         // Check minWidth of controlBar before adjusting. If the layout information
@@ -1694,9 +1659,10 @@
           return;
         }
 
-        let videoWidth = this.video.clientWidth;
-        let videoHeight = this.video.clientHeight;
-        const minControlBarPaddingWidth = 18;
+        // TODO: comment
+        if (!this.durationSpan.hideByAdjustment && isLabelUpdated) {
+          this.positionDurationBox.minWidth -= this.durationSpan.minWidth;
+        }
 
         // Hide and show control in order.
         const prioritizedControls = [
@@ -1710,9 +1676,13 @@
           this.volumeStack
         ];
 
-        this.fullscreenButton.isWanted = !this.controlBar.hasAttribute("fullscreen-unavailable");
-        this.closedCaptionButton.isWanted = this.isClosedCaptionAvailable;
-        this.volumeStack.isWanted = !this.muteButton.hasAttribute("noAudio");
+        const minControlBarPaddingWidth = 18;
+        const minRequiredWidth = prioritizedControls.map(control => {
+          return control.isWanted ? control.minWidth : 0;
+        }).reduce((pv, cv) => pv + cv, minControlBarPaddingWidth)
+
+        const videoWidth = this.isAudioOnly ? (this.video.clientWidth || minRequiredWidth) : this.video.clientWidth;
+        const videoHeight = this.isAudioOnly ? this.controlBarMinHeight : this.video.clientHeight;
 
         let widthUsed = minControlBarPaddingWidth;
         let preventAppendControl = false;
@@ -1733,12 +1703,8 @@
           }
         }
 
-        if (this.durationSpan.hideByAdjustment) {
-          this.positionDurationBox.resized = true;
-        }
-
         if (videoHeight < this.controlBarMinHeight ||
-            widthUsed === minControlBarPaddingWidth) {
+            widthUsed <= minControlBarPaddingWidth) {
           this.controlBar.setAttribute("size", "hidden");
           this.controlBar.hideByAdjustment = true;
         } else {
@@ -1767,8 +1733,6 @@
           this.clickToPlay.style.width = `${clickToPlayScaledSize}px`;
           this.clickToPlay.style.height = `${clickToPlayScaledSize}px`;
         }
-        // Record new size after adjustment
-        this.adjustedVideoSize = this.video.getBoundingClientRect();
       },
 
       init(binding) {
@@ -1851,7 +1815,7 @@
         addListener(this.controlsSpacer, "click", this.clickToPlayClickHandler);
         addListener(this.controlsSpacer, "dblclick", this.toggleFullscreen);
 
-        addListener(this.videocontrols, "resizevideocontrols", this.onVideoControlsResized);
+        addListener(this.videocontrols, "resizevideocontrols", this.adjustControlSize);
         addListener(this.videocontrols, "transitionend", this.onTransitionEnd);
         addListener(this.video.ownerDocument, "mozfullscreenchange", this.onFullscreenChange);
         addListener(this.controlBar, "transitionend", this.onControlBarTransitioned);

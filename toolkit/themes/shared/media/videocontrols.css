@@ -70,10 +70,10 @@ audio > xul|videocontrols {
 .controlBar {
   position: relative;
   display: flex;
-  justify-content: center;
+  justify-content: left;
   align-items: center;
   overflow: hidden;
-  height: 40px;
+  min-height: 40px;
   padding: 0 9px;
   background-color: rgba(26,26,26,.8);
 }
