@@ -6,6 +6,7 @@
 
 const MANAGE_PROFILES_DIALOG_URL = "chrome://formautofill/content/manageProfiles.xhtml";
 const EDIT_PROFILE_DIALOG_URL = "chrome://formautofill/content/editProfile.xhtml";
+const BASE_URL = "http://mochi.test:8888/browser/browser/extensions/formautofill/test/browser/"
 
 const TEST_ADDRESS_1 = {
   "given-name": "John",
@@ -30,6 +31,13 @@ const TEST_ADDRESS_3 = {
   "street-address": "Other Address",
   "postal-code": "12345",
 };
+
+registerCleanupFunction(async function() {
+  let addresses = await getAddresses();
+  if (addresses.length) {
+    await removeAddresses(addresses.map(address => address.guid));
+  }
+});
 
 function getAddresses() {
   return new Promise(resolve => {
