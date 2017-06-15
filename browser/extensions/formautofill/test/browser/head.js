@@ -1,6 +1,6 @@
 /* exported MANAGE_PROFILES_DIALOG_URL, EDIT_PROFILE_DIALOG_URL, BASE_URL,
             TEST_ADDRESS_1, TEST_ADDRESS_2, TEST_ADDRESS_3,
-            sleep, getAddresses, saveAddress, removeAddresses */
+            waitForIdentified, getAddresses, saveAddress, removeAddresses */
 
 "use strict";
 
@@ -32,8 +32,13 @@ const TEST_ADDRESS_3 = {
   "postal-code": "12345",
 };
 
-async function sleep(ms = 500) {
-  await new Promise(resolve => setTimeout(resolve, ms));
+function waitForIdentified() {
+  return new Promise(resolve => {
+    Services.mm.addMessageListener("FormAutofill:FieldsIdentified", function onIdentified() {
+      Services.mm.removeMessageListener("FormAutofill:FieldsIdentified", onIdentified);
+      resolve();
+    });
+  });
 }
 
 function getAddresses() {

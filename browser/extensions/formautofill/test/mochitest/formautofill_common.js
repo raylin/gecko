@@ -8,19 +8,16 @@ let formFillChromeScript;
 
 function setInput(selector, value) {
   let input = document.querySelector("input" + selector);
-  input.value = value;
-  input.focus();
 
-  // "identifyAutofillFields" is invoked asynchronously in "focusin" event. We
-  // should make sure fields are ready for popup before doing tests.
-  //
-  // TODO: "setTimeout" is used here temporarily because there's no event to
-  //       notify us of the state of "identifyAutofillFields" for now. We should
-  //       figure out a better way after the heuristics land.
-  SimpleTest.requestFlakyTimeout("Guarantee asynchronous identifyAutofillFields is invoked");
-  return new Promise(resolve => setTimeout(() => {
-    resolve(input);
-  }, 500));
+  return new Promise(resolve => {
+    input.value = value;
+    input.focus();
+
+    formFillChromeScript.addMessageListener("FormAutofillTest:Identified", function onIdentified() {
+      formFillChromeScript.removeMessageListener("FormAutofillTest:Identified", onIdentified);
+      resolve(input);
+    });
+  });
 }
 
 function clickOnElement(selector) {

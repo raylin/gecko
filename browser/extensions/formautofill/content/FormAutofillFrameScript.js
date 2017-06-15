@@ -48,8 +48,10 @@ var FormAutofillFrameScript = {
           return;
         }
 
-        let doIdentifyAutofillFields =
-          () => setTimeout(() => FormAutofillContent.identifyAutofillFields(doc));
+        let doIdentifyAutofillFields = () => setTimeout(() => {
+          FormAutofillContent.identifyAutofillFields(doc);
+          sendAsyncMessage("FormAutofill:FieldsIdentified");
+        });
 
         if (doc.readyState === "loading") {
           doc.addEventListener("DOMContentLoaded", doIdentifyAutofillFields, {once: true});
