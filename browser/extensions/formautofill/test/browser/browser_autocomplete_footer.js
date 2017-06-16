@@ -13,10 +13,11 @@ add_task(async function test_click_on_footer() {
   await BrowserTestUtils.withNewTab({gBrowser, url: URL}, async function(browser) {
     const {autoCompletePopup, autoCompletePopup: {richlistbox: itemsBox}} = browser;
 
+    const awaitForIdentified = waitForIdentified();
     await ContentTask.spawn(browser, {}, async function() {
       content.document.getElementById("organization").focus();
     });
-    await sleep(2000);
+    await awaitForIdentified;
     await BrowserTestUtils.synthesizeKey("VK_DOWN", {}, browser);
     await BrowserTestUtils.waitForCondition(() => autoCompletePopup.popupOpen);
 
@@ -39,11 +40,12 @@ add_task(async function test_press_enter_on_footer() {
   await BrowserTestUtils.withNewTab({gBrowser, url: URL}, async function(browser) {
     const {autoCompletePopup, autoCompletePopup: {richlistbox: itemsBox}} = browser;
 
+    let awaitForIdentified = waitForIdentified();
     await ContentTask.spawn(browser, {}, async function() {
       const input = content.document.getElementById("organization");
       input.focus();
     });
-    await sleep(2000);
+    await awaitForIdentified;
     await BrowserTestUtils.synthesizeKey("VK_DOWN", {}, browser);
     await BrowserTestUtils.waitForCondition(() => autoCompletePopup.popupOpen);
 
