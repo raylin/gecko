@@ -35,6 +35,9 @@
 
       <constructor>
         <![CDATA[
+          // Set @bindingtype here to test if this bidning is actually attached.
+          this.setAttribute("actualtype", "formautofill");
+
           this._itemBox = document.getAnonymousElementByAttribute(
             this, "anonid", "profile-item-box"
           );
