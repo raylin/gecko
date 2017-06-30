@@ -275,4 +275,15 @@
     </implementation>
   </binding>
 
+  <binding id="autocomplete-creditcard-insecure-field" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-richlistitem-insecure-field">
+    <handlers>
+      <handler event="click" button="0" phase="capturing"><![CDATA[
+        // Suppress any other handlers from its inheritance chain.
+        event.stopPropagation();
+
+        // Leave empty here until we're sure where to redirect for "Learn more" link
+      ]]></handler>
+    </handlers>
+  </binding>
+
 </bindings>

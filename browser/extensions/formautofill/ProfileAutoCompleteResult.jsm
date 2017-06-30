@@ -8,14 +8,19 @@ this.EXPORTED_SYMBOLS = ["AddressResult", "CreditCardResult"]; /* exported Addre
 
 const {classes: Cc, interfaces: Ci, utils: Cu, results: Cr} = Components;
 
+Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://formautofill/FormAutofillUtils.jsm");
+
+XPCOMUtils.defineLazyGetter(this, "gBrandBundle", function() {
+  return Services.strings.createBundle("chrome://branding/locale/brand.properties");
+});
 
 this.log = null;
 FormAutofillUtils.defineLazyLogGetter(this, this.EXPORTED_SYMBOLS[0]);
 
 class ProfileAutoCompleteResult {
-  constructor(searchString, focusedFieldName, allFieldNames, matchingProfiles, {resultCode = null}) {
+  constructor(searchString, focusedFieldName, allFieldNames, matchingProfiles, {resultCode = null, isSecure = true}) {
     log.debug("Constructing new ProfileAutoCompleteResult:", [...arguments]);
 
     // nsISupports
@@ -33,6 +38,9 @@ class ProfileAutoCompleteResult {
     this.defaultIndex = 0;
     // The reason the search failed
     this.errorDescription = "";
+    // The value used to determine whether the connection is secure or not.
+    // this._isSecure = isSecure;
+    this._isSecure = false;
 
     // The result code of this result object.
     if (resultCode) {
@@ -147,17 +155,6 @@ class ProfileAutoCompleteResult {
 class AddressResult extends ProfileAutoCompleteResult {
   constructor(...args) {
     super(...args);
-
-    // Add an empty result entry for footer. Its content will come from
-    // the footer binding, so don't assign any value to it.
-    // The additional properties: categories and focusedCategory are required of
-    // the popup to generate autofill hint on the footer.
-    this._popupLabels.push({
-      primary: "",
-      secondary: "",
-      categories: FormAutofillUtils.getCategoriesFromFieldNames(this._allFieldNames),
-      focusedCategory: FormAutofillUtils.getCategoryFromFieldName(this._focusedFieldName),
-    });
   }
 
   _getSecondaryLabel(focusedFieldName, allFieldNames, profile) {
@@ -223,8 +220,9 @@ class AddressResult extends ProfileAutoCompleteResult {
   }
 
   _generateLabels(focusedFieldName, allFieldNames, profiles) {
+    let labels = [];
     // Skip results without a primary label.
-    return profiles.filter(profile => {
+    labels.push(profiles.filter(profile => {
       return !!profile[focusedFieldName];
     }).map(profile => {
       let primaryLabel = profile[focusedFieldName];
@@ -238,18 +236,25 @@ class AddressResult extends ProfileAutoCompleteResult {
                                            allFieldNames,
                                            profile),
       };
+    }));
+    // Add an empty result entry for footer. Its content will come from
+    // the footer binding, so don't assign any value to it.
+    // The additional properties: categories and focusedCategory are required of
+    // the popup to generate autofill hint on the footer.
+    labels.push({
+      primary: "",
+      secondary: "",
+      categories: FormAutofillUtils.getCategoriesFromFieldNames(this._allFieldNames),
+      focusedCategory: FormAutofillUtils.getCategoryFromFieldName(this._focusedFieldName),
     });
+
+    return labels;
   }
-
-
 }
 
 class CreditCardResult extends ProfileAutoCompleteResult {
   constructor(...args) {
     super(...args);
-
-    // Add an empty result entry for footer.
-    this._popupLabels.push({primary: "", secondary: ""});
   }
 
   _getSecondaryLabel(focusedFieldName, allFieldNames, profile) {
@@ -298,8 +303,15 @@ class CreditCardResult extends ProfileAutoCompleteResult {
   }
 
   _generateLabels(focusedFieldName, allFieldNames, profiles) {
+    if (!this._isSecure) {
+      let brandName = gBrandBundle.GetStringFromName("brandShortName");
+
+      return [FormAutofillUtils.stringBundle.formatStringFromName("insecureFieldWarningDescription", [brandName], 1)];
+    }
+
+    let labels = [];
     // Skip results without a primary label.
-    return profiles.filter(profile => {
+    labels.push(profiles.filter(profile => {
       return !!profile[focusedFieldName];
     }).map(profile => {
       return {
@@ -308,7 +320,11 @@ class CreditCardResult extends ProfileAutoCompleteResult {
                                            allFieldNames,
                                            profile),
       };
-    });
+    }));
+    // Add an empty result entry for footer.
+    labels.push({primary: "", secondary: ""});
+
+    return labels;
   }
 
   // Always return empty string for credit card result. Since the decryption might
@@ -318,4 +334,30 @@ class CreditCardResult extends ProfileAutoCompleteResult {
     this._checkIndexBounds(index);
     return "";
   }
+
+  getLabelAt(index) {
+    this._checkIndexBounds(index);
+
+    let label = this._popupLabels[index];
+
+    if (typeof label == "string") {
+      return label;
+    }
+    return JSON.stringify(this._popupLabels[index]);
+  }
+
+  getStyleAt(index) {
+    this._checkIndexBounds(index);
+    if (!this._isSecure) {
+      return "insecureWarning";
+    }
+
+    if (index == this.matchCount - 1) {
+      return "autofill-footer";
+    }
+
+    return "autofill-profile";
+  }
+
+
 }

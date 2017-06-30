@@ -11,6 +11,7 @@ const {classes: Cc, interfaces: Ci, utils: Cu, results: Cr} = Components;
 const ADDRESS_REFERENCES = "chrome://formautofill/content/addressReferences.js";
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 
 this.FormAutofillUtils = {
   get AUTOFILL_FIELDS_THRESHOLD() { return 3; },
@@ -44,6 +45,10 @@ this.FormAutofillUtils = {
     "cc-exp-year": "creditCard",
   },
   _addressDataLoaded: false,
+
+  get stringBundle() {
+    return Services.strings.createBundle("chrome://formautofill/locale/formautofill.properties");
+  },
 
   isAddressField(fieldName) {
     return !!this._fieldNameInfo[fieldName] && !this.isCreditCardField(fieldName);

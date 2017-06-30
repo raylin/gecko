@@ -27,6 +27,8 @@ XPCOMUtils.defineLazyModuleGetter(this, "FormAutofillHandler",
                                   "resource://formautofill/FormAutofillHandler.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "FormLikeFactory",
                                   "resource://gre/modules/FormLikeFactory.jsm");
+XPCOMUtils.defineLazyModuleGetter(this, "InsecurePasswordUtils",
+                                  "resource://gre/modules/InsecurePasswordUtils.jsm");
 
 const formFillController = Cc["@mozilla.org/satchel/form-fill-controller;1"]
                              .getService(Ci.nsIFormFillController);
@@ -129,11 +131,14 @@ AutofillProfileAutoCompleteSearch.prototype = {
                                    adaptedRecords,
                                    {});
       } else {
+        let isSecure = InsecurePasswordUtils.isFormSecure(handler.form);
+        let adaptedRecords = handler.getAdaptedProfiles(records);
+
         result = new CreditCardResult(searchString,
                                       info.fieldName,
                                       allFieldNames,
                                       adaptedRecords,
-                                      {});
+                                      {isSecure});
       }
       listener.onSearchResult(this, result);
       ProfileAutocomplete.setProfileAutoCompleteResult(result);
