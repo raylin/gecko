@@ -261,6 +261,14 @@ class CreditCardResult extends ProfileAutoCompleteResult {
     this._popupLabels.push({primary: "", secondary: ""});
   }
 
+  _fmtMaskedCreditCardLabel(maskedCCNum = "") {
+    if (!/^(\*+)\d{4}$/.test(maskedCCNum)) {
+      return maskedCCNum;
+    }
+
+    return ["****", maskedCCNum.replace(/^\**/, "")];
+  }
+
   _getSecondaryLabel(focusedFieldName, allFieldNames, profile) {
     const GROUP_FIELDS = {
       "cc-name": [
@@ -299,6 +307,10 @@ class CreditCardResult extends ProfileAutoCompleteResult {
         allFieldNames.includes(currentFieldName);
 
       if (matching) {
+        if (currentFieldName == "cc-number") {
+          let [primaryAffix, primary] = this._fmtMaskedCreditCardLabel(profile[currentFieldName]);
+          return primaryAffix + primary;
+        }
         return profile[currentFieldName];
       }
     }
@@ -311,8 +323,15 @@ class CreditCardResult extends ProfileAutoCompleteResult {
     return profiles.filter(profile => {
       return !!profile[focusedFieldName];
     }).map(profile => {
+      let primaryAffix;
+      let primary = profile[focusedFieldName];
+
+      if (focusedFieldName == "cc-number") {
+        [primaryAffix, primary] = this._fmtMaskedCreditCardLabel(profile[focusedFieldName]);
+      }
       return {
-        primary: profile[focusedFieldName],
+        primaryAffix,
+        primary,
         secondary: this._getSecondaryLabel(focusedFieldName,
                                            allFieldNames,
                                            profile),
@@ -326,5 +345,10 @@ class CreditCardResult extends ProfileAutoCompleteResult {
   getValueAt(index) {
     this._checkIndexBounds(index);
     return "";
+  }
+
+  getImageAt(index) {
+    this._checkIndexBounds(index);
+    return "chrome://formautofill/content/credit-card-icon.svg";
   }
 }

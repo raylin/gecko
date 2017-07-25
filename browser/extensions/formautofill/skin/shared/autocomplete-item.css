@@ -67,6 +67,20 @@ xul|richlistitem[originaltype="autofill-footer"][selected="true"] > .autofill-it
   text-align: start;
 }
 
+.autofill-item-box:not([ac-image=""]) > .profile-label-col::before {
+  float: left;
+  content: "";
+  width: 16px;
+  height: 16px;
+  background-image: var(--primary-icon);
+  margin-right: 5px;
+}
+
+.autofill-item-box > .profile-label-col > .profile-label-affix {
+  font-size: 10px;
+  font-weight: lighter;
+}
+
 .autofill-item-box > .profile-comment-col {
   margin-inline-start: var(--col-spacer);
   text-align: end;
