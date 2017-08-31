@@ -7,7 +7,14 @@
 let formFillChromeScript;
 let expectingPopup = null;
 
-function setInput(selector, value) {
+async function sleep(ms = 500, requestMsg = "Ensure ProfileAutocomplete is registered") {
+  await new Promise(resolve => {
+    SimpleTest.requestFlakyTimeout(requestMsg);
+    setTimeout(resolve, ms);
+  });
+}
+
+async function setInput(selector, value) {
   let input = document.querySelector("input" + selector);
   input.value = value;
   input.focus();
@@ -15,13 +22,11 @@ function setInput(selector, value) {
   // "identifyAutofillFields" is invoked asynchronously in "focusin" event. We
   // should make sure fields are ready for popup before doing tests.
   //
-  // TODO: "setTimeout" is used here temporarily because there's no event to
+  // TODO: "sleep" is used here temporarily because there's no event to
   //       notify us of the state of "identifyAutofillFields" for now. We should
   //       figure out a better way after the heuristics land.
-  SimpleTest.requestFlakyTimeout("Guarantee asynchronous identifyAutofillFields is invoked");
-  return new Promise(resolve => setTimeout(() => {
-    resolve(input);
-  }, 500));
+  await sleep(500, "Guarantee asynchronous identifyAutofillFields is invoked");
+  return input;
 }
 
 function clickOnElement(selector) {
@@ -34,7 +39,7 @@ function clickOnElement(selector) {
   SimpleTest.executeSoon(() => element.click());
 }
 
-async function onAddressChanged(type) {
+async function onStorageChanged(type) {
   return new Promise(resolve => {
     formFillChromeScript.addMessageListener("formautofill-storage-changed", function onChanged(data) {
       formFillChromeScript.removeMessageListener("formautofill-storage-changed", onChanged);
@@ -47,7 +52,7 @@ async function onAddressChanged(type) {
 function checkMenuEntries(expectedValues, isFormAutofillResult = true) {
   let actualValues = getMenuEntries();
   // Expect one more item would appear at the bottom as the footer if the result is from form autofill.
-  let expectedLength = isFormAutofillResult ? expectedValues.length + 1 : expectedValues.length;
+  let expectedLength = expectedValues.length + (+!!isFormAutofillResult);
 
   is(actualValues.length, expectedLength, " Checking length of expected menu");
   for (let i = 0; i < expectedValues.length; i++) {
@@ -55,60 +60,58 @@ function checkMenuEntries(expectedValues, isFormAutofillResult = true) {
   }
 }
 
-async function addAddress(address) {
+function invokeAsyncChromeTask(msg, res, payload = {}) {
   return new Promise(resolve => {
-    formFillChromeScript.sendAsyncMessage("FormAutofillTest:AddAddress", {address});
-    formFillChromeScript.addMessageListener("FormAutofillTest:AddressAdded", function onAdded(data) {
-      formFillChromeScript.removeMessageListener("FormAutofillTest:AddressAdded", onAdded);
+    formFillChromeScript.sendAsyncMessage(msg, payload);
+    formFillChromeScript.addMessageListener(res, function onReceived(data) {
+      formFillChromeScript.removeMessageListener(res, onReceived);
 
-      SimpleTest.requestFlakyTimeout("Ensure ProfileAutocomplete is registered");
-      setTimeout(resolve, 500);
+      resolve(data);
     });
   });
+}
+
+async function addAddress(address) {
+  await invokeAsyncChromeTask("FormAutofillTest:AddAddress", "FormAutofillTest:AddressAdded", {address});
+  await sleep();
 }
 
 async function removeAddress(guid) {
-  return new Promise(resolve => {
-    formFillChromeScript.sendAsyncMessage("FormAutofillTest:RemoveAddress", {guid});
-    formFillChromeScript.addMessageListener("FormAutofillTest:AddressRemoved", function onDeleted(data) {
-      formFillChromeScript.removeMessageListener("FormAutofillTest:AddressRemoved", onDeleted);
-
-      resolve();
-    });
-  });
+  return invokeAsyncChromeTask("FormAutofillTest:RemoveAddress", "FormAutofillTest:AddressRemoved", {guid});
 }
 
 async function updateAddress(guid, address) {
-  return new Promise(resolve => {
-    formFillChromeScript.sendAsyncMessage("FormAutofillTest:UpdateAddress", {address, guid});
-    formFillChromeScript.addMessageListener("FormAutofillTest:AddressUpdated", function onUpdated(data) {
-      formFillChromeScript.removeMessageListener("FormAutofillTest:AddressUpdated", onUpdated);
-
-      resolve();
-    });
-  });
+  return invokeAsyncChromeTask("FormAutofillTest:UpdateAddress", "FormAutofillTest:AddressUpdated", {address, guid});
 }
 
 async function checkAddresses(expectedAddresses) {
-  return new Promise(resolve => {
-    formFillChromeScript.sendAsyncMessage("FormAutofillTest:CheckAddresses", {expectedAddresses});
-    formFillChromeScript.addMessageListener("FormAutofillTest:areAddressesMatching", function onChecked(data) {
-      formFillChromeScript.removeMessageListener("FormAutofillTest:areAddressesMatching", onChecked);
-
-      resolve(data);
-    });
-  });
+  return invokeAsyncChromeTask("FormAutofillTest:CheckAddresses", "FormAutofillTest:areAddressesMatching", {expectedAddresses});
 }
 
-async function cleanUpAddress() {
-  return new Promise(resolve => {
-    formFillChromeScript.sendAsyncMessage("FormAutofillTest:CleanUpAddress", {});
-    formFillChromeScript.addMessageListener("FormAutofillTest:AddressCleanedUp", function onCleanedUp(data) {
-      formFillChromeScript.removeMessageListener("FormAutofillTest:AddressCleanedUp", onCleanedUp);
+async function cleanUpAddresses() {
+  return invokeAsyncChromeTask("FormAutofillTest:CleanUpAddresses", "FormAutofillTest:AddressesCleanedUp");
+}
 
-      resolve(data);
-    });
-  });
+async function addCreditCard(creditCard) {
+  await invokeAsyncChromeTask("FormAutofillTest:AddCreditCard", "FormAutofillTest:CreditCardAdded", {creditCard});
+  await sleep();
+}
+
+async function removeCreditCard(guid) {
+  return invokeAsyncChromeTask("FormAutofillTest:RemoveCreditCard", "FormAutofillTest:CreditCardRemoved", {guid});
+}
+
+async function checkCreditCards(expectedCreditCards) {
+  return invokeAsyncChromeTask("FormAutofillTest:CheckCreditCards", "FormAutofillTest:areCreditCardsMatching", {expectedCreditCards});
+}
+
+async function cleanUpCreditCards() {
+  return invokeAsyncChromeTask("FormAutofillTest:CleanUpCreditCards", "FormAutofillTest:CreditCardsCleanedUp");
+}
+
+async function cleanUpStorage() {
+  await cleanUpAddresses();
+  await cleanUpCreditCards();
 }
 
 // Utils for registerPopupShownListener(in satchel_common.js) that handles dropdown popup
