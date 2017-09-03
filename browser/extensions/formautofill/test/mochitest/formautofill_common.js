@@ -92,8 +92,8 @@ async function cleanUpAddresses() {
   return invokeAsyncChromeTask("FormAutofillTest:CleanUpAddresses", "FormAutofillTest:AddressesCleanedUp");
 }
 
-async function addCreditCard(creditCard) {
-  await invokeAsyncChromeTask("FormAutofillTest:AddCreditCard", "FormAutofillTest:CreditCardAdded", {creditCard});
+async function addCreditCard(creditcard) {
+  await invokeAsyncChromeTask("FormAutofillTest:AddCreditCard", "FormAutofillTest:CreditCardAdded", {creditcard});
   await sleep();
 }
 

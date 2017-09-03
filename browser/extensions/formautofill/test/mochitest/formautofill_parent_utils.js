@@ -10,6 +10,7 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://formautofill/FormAutofillUtils.jsm");
 
 let {profileStorage} = Cu.import("resource://formautofill/ProfileStorage.jsm", {});
+let {MasterPassword} = Cu.import("resource://formautofill/MasterPassword.jsm", {});
 
 const {ADDRESSES_COLLECTION_NAME, CREDITCARDS_COLLECTION_NAME} = FormAutofillUtils;
 const COLLECTIONS = {
@@ -66,7 +67,9 @@ var ParentUtils = {
         break;
       }
       case (COLLECTIONS.creditCard | OPS.add): {
-        Services.cpmm.sendAsyncMessage("FormAutofill:SaveCreditCard", msgData);
+        const msgDataCloned = Object.assign({}, msgData);
+
+        Services.cpmm.sendAsyncMessage("FormAutofill:SaveCreditCard", msgDataCloned);
         break;
       }
       case (COLLECTIONS.creditCard | OPS.remove): {
