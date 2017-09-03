@@ -10,7 +10,7 @@
   <link rel="stylesheet" type="text/css" href="/tests/SimpleTest/test.css" />
 </head>
 <body>
-Form autofill test: simple form address autofill
+Form autofill test: simple form credit card autofill
 
 <script>
 /* import-globals-from ../../../../../testing/mochitest/tests/SimpleTest/SpawnTask.js */
@@ -22,17 +22,15 @@ Form autofill test: simple form address autofill
 const {FormAutofillUtils} = SpecialPowers.Cu.import("resource://formautofill/FormAutofillUtils.jsm");
 
 let MOCK_STORAGE = [{
-  organization: "Sesame Street",
-  "street-address": "123 Sesame Street.\n2-line\n3-line",
-  tel: "+13453453456",
-  country: "US",
-  "address-level1": "NY",
+  "cc-name": "John Doe",
+  "cc-number": "1234567812345678",
+  "cc-exp-month": 4,
+  "cc-exp-year": 2017,
 }, {
-  organization: "Mozilla",
-  "street-address": "331 E. Evelyn Avenue\n2-line\n3-line",
-  tel: "+16509030800",
-  country: "US",
-  "address-level1": "CA",
+  "cc-name": "Timothy Berners-Lee",
+  "cc-number": "1111222233334444",
+  "cc-exp-month": 12,
+  "cc-exp-year": 2022,
 }];
 
 function checkElementFilled(element, expectedvalue) {
@@ -81,45 +79,62 @@ function checkFormFilled(address) {
 }
 
 async function setupAddressStorage() {
-  await addAddress(MOCK_STORAGE[0]);
-  await addAddress(MOCK_STORAGE[1]);
+  await addCreditCard(MOCK_STORAGE[0]);
+  await addCreditCard(MOCK_STORAGE[1]);
 }
 
 // TODO: Add form history fallback test cases for credit card fields. (bug 1393374)
 async function setupFormHistory() {
   await updateFormHistory([
-    {op: "add", fieldname: "tel", value: "+1234567890"},
-    {op: "add", fieldname: "email", value: "foo@mozilla.com"},
+    {op: "add", fieldname: "cc-name", value: "John Smith"},
+    {op: "add", fieldname: "cc-exp-year", value: 2023},
   ]);
 }
 
 initPopupListener();
 
+// Disable insecure warning for credit card.
+add_task(async function history_only_menu_checking() {
+  await SpecialPowers.pushPrefEnv({
+    set: [
+      ["security.insecure_field_warning.contextual.enabled", false],
+      ["extensions.formautofill.loglevel", "Debug"],
+    ],
+  });
+});
+
 // Form with history only.
 add_task(async function history_only_menu_checking() {
   await setupFormHistory();
 
-  await setInput("#tel", "");
+  await setInput("#cc-exp-year", "");
   doKey("down");
   await expectPopup();
-  checkMenuEntries(["+1234567890"], false);
+  checkMenuEntries(["2023"], false);
 });
 
 // Display history search result if less than 3 inputs are covered by all saved
 // fields in the storage.
 add_task(async function all_saved_fields_less_than_threshold() {
-  await addAddress({
-    email: "test@test.com",
-  });
+  const mockCreditCard = {
+    "cc-name": "test",
+    "cc-number": "1234123456785678",
+  };
 
-  await setInput("#email", "");
+  await addCreditCard(mockCreditCard);
+
+  await setInput("#cc-name", "");
   doKey("down");
   await expectPopup();
-  checkMenuEntries(["foo@mozilla.com"], false);
+  checkMenuEntries([JSON.stringify({
+    primary: "test",
+    secondary: "****5678",
+  })], true);
 
-  await cleanUpAddresses();
+  await cleanUpCreditCards();
 });
 
+/*
 // Form with both history and address storage.
 add_task(async function check_menu_when_both_existed() {
   await setupAddressStorage();
@@ -224,6 +239,7 @@ add_task(async function check_form_autofill_resume() {
     })
   ));
 });
+*/
 
 </script>
 
@@ -233,23 +249,12 @@ add_task(async function check_form_autofill_resume() {
 
   <form id="form1">
     <p>This is a basic form.</p>
-    <p><label>organization: <input id="organization" name="organization" autocomplete="organization" type="text"></label></p>
-    <p><label>streetAddress: <input id="street-address" name="street-address" autocomplete="street-address" type="text"></label></p>
-    <p><label>address-line1: <input id="address-line1" name="address-line1" autocomplete="address-line1" type="text"></label></p>
-    <p><label>tel: <input id="tel" name="tel" autocomplete="tel" type="text"></label></p>
-    <p><label>email: <input id="email" name="email" autocomplete="email" type="text"></label></p>
-    <p><label>country: <select id="country" name="country" autocomplete="country">
-      <option/>
-      <option value="US">United States</option>
-    </select></label></p>
-    <p><label>states: <select id="address-level1" name="address-level1" autocomplete="address-level1">
-      <option/>
-      <option value="CA">California</option>
-      <option value="NY">New York</option>
-      <option value="WA">Washington</option>
-    </select></label></p>
+    <p><label>Name: <input id="cc-name" autocomplete="cc-name"></label></p>
+    <p><label>Card Number: <input id="cc-number" autocomplete="cc-number"></label></p>
+    <p><label>Expiration month: <input id="cc-exp-month" autocomplete="cc-exp-month"></label></p>
+    <p><label>Expiration year: <input id="cc-exp-year" autocomplete="cc-exp-year"></label></p>
+    <p><label>CSC: <input id="cc-csc" autocomplete="cc-csc"></label></p>
   </form>
-
 </div>
 
 <pre id="test"></pre>
