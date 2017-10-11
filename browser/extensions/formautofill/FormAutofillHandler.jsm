@@ -23,6 +23,8 @@ XPCOMUtils.defineLazyModuleGetter(this, "FormAutofillHeuristics",
 this.log = null;
 FormAutofillUtils.defineLazyLogGetter(this, this.EXPORTED_SYMBOLS[0]);
 
+const {FIELD_STATES} = FormAutofillUtils;
+
 /**
  * Handles profile autofill for a DOM Form element.
  * @param {FormLike} form Form that need to be auto filled
@@ -105,11 +107,11 @@ FormAutofillHandler.prototype = {
    */
   fieldStateEnum: {
     // not themed
-    NORMAL: null,
+    [FIELD_STATES.NORMAL]: null,
     // highlighted
-    AUTO_FILLED: "-moz-autofill",
+    [FIELD_STATES.AUTO_FILLED]: "-moz-autofill",
     // highlighted && grey color text
-    PREVIEW: "-moz-autofill-preview",
+    [FIELD_STATES.PREVIEW]: "-moz-autofill-preview",
   },
 
   get isFormChangedSinceLastCollection() {
@@ -399,7 +401,7 @@ FormAutofillHandler.prototype = {
         if (element == focusedInput ||
             (element != focusedInput && !element.value)) {
           element.setUserInput(value);
-          this.changeFieldState(fieldDetail, "AUTO_FILLED");
+          this.changeFieldState(fieldDetail, FIELD_STATES.AUTO_FILLED);
           continue;
         }
       }
@@ -418,7 +420,7 @@ FormAutofillHandler.prototype = {
           element.dispatchEvent(new element.ownerGlobal.Event("change", {bubbles: true}));
         }
         // Autofill highlight appears regardless if value is changed or not
-        this.changeFieldState(fieldDetail, "AUTO_FILLED");
+        this.changeFieldState(fieldDetail, FIELD_STATES.AUTO_FILLED);
       }
     }
 
@@ -439,10 +441,10 @@ FormAutofillHandler.prototype = {
         }
 
         if (e.target == element || (e.target == element.form && e.type == "reset")) {
-          this.changeFieldState(fieldDetail, "NORMAL");
+          this.changeFieldState(fieldDetail, FIELD_STATES.NORMAL);
         }
 
-        hasFilledFields |= (fieldDetail.state == "AUTO_FILLED");
+        hasFilledFields |= (fieldDetail.state == FIELD_STATES.AUTO_FILLED);
       }
 
       // Unregister listeners and clear guid once no field is in AUTO_FILLED state.
@@ -501,7 +503,7 @@ FormAutofillHandler.prototype = {
         continue;
       }
       element.previewValue = value;
-      this.changeFieldState(fieldDetail, value ? "PREVIEW" : "NORMAL");
+      this.changeFieldState(fieldDetail, value ? FIELD_STATES.PREVIEW : FIELD_STATES.NORMAL);
     }
   },
 
@@ -526,11 +528,11 @@ FormAutofillHandler.prototype = {
 
       // We keep the state if this field has
       // already been auto-filled.
-      if (fieldDetail.state === "AUTO_FILLED") {
+      if (fieldDetail.state == FIELD_STATES.AUTO_FILLED) {
         continue;
       }
 
-      this.changeFieldState(fieldDetail, "NORMAL");
+      this.changeFieldState(fieldDetail, FIELD_STATES.NORMAL);
     }
   },
 
@@ -656,7 +658,7 @@ FormAutofillHandler.prototype = {
 
         data[type].record[detail.fieldName] = value;
 
-        if (detail.state == "AUTO_FILLED") {
+        if (detail.state == FIELD_STATES.AUTO_FILLED) {
           data[type].untouchedFields.push(detail.fieldName);
         }
       });
