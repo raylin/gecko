@@ -23,6 +23,8 @@ XPCOMUtils.defineLazyModuleGetter(this, "AddressResult",
                                   "resource://formautofill/ProfileAutoCompleteResult.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "CreditCardResult",
                                   "resource://formautofill/ProfileAutoCompleteResult.jsm");
+XPCOMUtils.defineLazyModuleGetter(this, "ClearFormResult",
+                                  "resource://formautofill/ProfileAutoCompleteResult.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "FormAutofillHandler",
                                   "resource://formautofill/FormAutofillHandler.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "FormLikeFactory",
@@ -32,7 +34,7 @@ XPCOMUtils.defineLazyModuleGetter(this, "InsecurePasswordUtils",
 
 const formFillController = Cc["@mozilla.org/satchel/form-fill-controller;1"]
                              .getService(Ci.nsIFormFillController);
-const {ADDRESSES_COLLECTION_NAME, CREDITCARDS_COLLECTION_NAME} = FormAutofillUtils;
+const {ADDRESSES_COLLECTION_NAME, CREDITCARDS_COLLECTION_NAME, FIELD_STATES} = FormAutofillUtils;
 
 // Register/unregister a constructor as a factory.
 function AutocompleteFactory() {}
@@ -101,6 +103,7 @@ AutofillProfileAutoCompleteSearch.prototype = {
     let focusedInput = formFillController.focusedInput;
     let info = FormAutofillContent.getInputDetails(focusedInput);
     let isAddressField = FormAutofillUtils.isAddressField(info.fieldName);
+    let isInputAutofilled = info.state == FIELD_STATES.AUTO_FILLED;
     let handler = FormAutofillContent.getFormHandler(focusedInput);
     let allFieldNames = handler.allFieldNames;
     let filledRecordGUID = isAddressField ? handler.address.filledRecordGUID : handler.creditCard.filledRecordGUID;
@@ -108,12 +111,17 @@ AutofillProfileAutoCompleteSearch.prototype = {
                           FormAutofillUtils.isAutofillAddressesEnabled :
                           FormAutofillUtils.isAutofillCreditCardsEnabled;
 
+    // TODO: This flag is used to temporarily hide clear form popup before the feature
+    // is done, and it should be removed in Bug 1404773.
+    const clearFormButtonDisabled = true;
+
     // Fallback to form-history if ...
     //   - specified autofill feature is pref off.
     //   - no profile can fill the currently-focused input.
     //   - the current form has already been populated.
     //   - (address only) less than 3 inputs are covered by all saved fields in the storage.
-    if (!searchPermitted || !savedFieldNames.has(info.fieldName) || filledRecordGUID || (isAddressField &&
+    if (!searchPermitted || !savedFieldNames.has(info.fieldName) ||
+        (!isInputAutofilled | clearFormButtonDisabled && filledRecordGUID) || (isAddressField &&
         allFieldNames.filter(field => savedFieldNames.has(field)).length < FormAutofillUtils.AUTOFILL_FIELDS_THRESHOLD)) {
       if (focusedInput.autocomplete == "off") {
         // Create a dummy AddressResult as an empty search result.
@@ -140,6 +148,15 @@ AutofillProfileAutoCompleteSearch.prototype = {
       info: infoWithoutElement,
       searchString,
     };
+
+    // Show clear form popup if click on filled fields.
+    if (isInputAutofilled && !clearFormButtonDisabled) {
+      let result = null;
+      result = new ClearFormResult(searchString, info.fieldName, [], [], {});
+      listener.onSearchResult(this, result);
+      ProfileAutocomplete.setProfileAutoCompleteResult(result);
+      return;
+    }
 
     this._getRecords(data).then((records) => {
       if (this.forceStop) {

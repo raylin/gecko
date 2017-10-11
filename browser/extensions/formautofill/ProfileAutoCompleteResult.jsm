@@ -4,7 +4,11 @@
 
 "use strict";
 
-this.EXPORTED_SYMBOLS = ["AddressResult", "CreditCardResult"]; /* exported AddressResult, CreditCardResult */
+this.EXPORTED_SYMBOLS = [
+  "AddressResult",
+  "CreditCardResult",
+  "ClearFormResult",
+]; /* exported AddressResult, CreditCardResult, ClearFormResult */
 
 const {classes: Cc, interfaces: Ci, utils: Cu, results: Cr} = Components;
 
@@ -94,18 +98,28 @@ class ProfileAutoCompleteResult {
   _generateLabels(focusedFieldName, allFieldNames, profiles) {}
 
   /**
-   * Retrieves a result
+   * Get the value of the result at the given index.
+   *
+   * Always return empty string for form autofill feature to suppress
+   * AutoCompleteController from autofilling, as we'll populate the
+   * fields on our own.
+   *
    * @param   {number} index The index of the result requested
    * @returns {string} The result at the specified index
    */
   getValueAt(index) {
     this._checkIndexBounds(index);
-    return this._popupLabels[index].primary;
+    return "";
   }
 
   getLabelAt(index) {
     this._checkIndexBounds(index);
-    return JSON.stringify(this._popupLabels[index]);
+
+    let label = this._popupLabels[index];
+    if (typeof label == "string") {
+      return label;
+    }
+    return JSON.stringify(label);
   }
 
   /**
@@ -125,6 +139,7 @@ class ProfileAutoCompleteResult {
    */
   getStyleAt(index) {
     this._checkIndexBounds(index);
+
     if (index == this.matchCount - 1) {
       return "autofill-footer";
     }
@@ -267,11 +282,6 @@ class AddressResult extends ProfileAutoCompleteResult {
 
     return labels;
   }
-
-  getValueAt(index) {
-    this._checkIndexBounds(index);
-    return "";
-  }
 }
 
 class CreditCardResult extends ProfileAutoCompleteResult {
@@ -364,24 +374,6 @@ class CreditCardResult extends ProfileAutoCompleteResult {
     return labels;
   }
 
-  // Always return empty string for credit card result. Since the decryption might
-  // be required of users' input, we have to suppress AutoCompleteController
-  // from filling encrypted data directly.
-  getValueAt(index) {
-    this._checkIndexBounds(index);
-    return "";
-  }
-
-  getLabelAt(index) {
-    this._checkIndexBounds(index);
-
-    let label = this._popupLabels[index];
-    if (typeof label == "string") {
-      return label;
-    }
-    return JSON.stringify(label);
-  }
-
   getStyleAt(index) {
     this._checkIndexBounds(index);
     if (!this._isSecure && insecureWarningEnabled) {
@@ -398,5 +390,29 @@ class CreditCardResult extends ProfileAutoCompleteResult {
   getImageAt(index) {
     this._checkIndexBounds(index);
     return "chrome://formautofill/content/icon-credit-card-generic.svg";
+  }
+}
+
+class ClearFormResult extends ProfileAutoCompleteResult {
+  constructor(...args) {
+    super(...args);
+
+    this.searchResult = Ci.nsIAutoCompleteResult.RESULT_SUCCESS;
+  }
+
+  _generateLabels() {
+    return [
+      {primary: "Clear Form", secondary: ""}, // clear form button
+      {primary: "", secondary: ""}, // more options button
+    ];
+  }
+
+  getStyleAt(index) {
+    this._checkIndexBounds(index);
+
+    if (index == this.matchCount - 1) {
+      return "autofill-footer";
+    }
+    return "autofill-profile";
   }
 }

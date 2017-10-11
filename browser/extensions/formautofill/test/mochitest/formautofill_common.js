@@ -16,7 +16,7 @@ async function sleep(ms = 500, reason = "Intentionally wait for UI ready") {
 
 async function setInput(selector, value) {
   let input = document.querySelector("input" + selector);
-  input.value = value;
+  SpecialPowers.wrap(input).setUserInput(value);
   input.focus();
 
   // "identifyAutofillFields" is invoked asynchronously in "focusin" event. We
