@@ -536,6 +536,23 @@ FormAutofillHandler.prototype = {
     }
   },
 
+  clearPopulatedForm(focusedInput) {
+    let fieldDetails = this.getFieldDetailsByElement(focusedInput);
+    for (let fieldDetail of fieldDetails) {
+      let element = fieldDetail.elementWeakRef.get();
+      if (!element) {
+        log.warn(fieldDetail.fieldName, "is unreachable");
+        continue;
+      }
+
+      if (fieldDetail.state == FIELD_STATES.AUTO_FILLED) {
+        element.setUserInput("");
+      }
+
+      this.changeFieldState(fieldDetail, FIELD_STATES.NORMAL);
+    }
+  },
+
   /**
    * Change the state of a field to correspond with different presentations.
    *

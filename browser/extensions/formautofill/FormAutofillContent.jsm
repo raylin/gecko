@@ -111,17 +111,13 @@ AutofillProfileAutoCompleteSearch.prototype = {
                           FormAutofillUtils.isAutofillAddressesEnabled :
                           FormAutofillUtils.isAutofillCreditCardsEnabled;
 
-    // TODO: This flag is used to temporarily hide clear form popup before the feature
-    // is done, and it should be removed in Bug 1404773.
-    const clearFormButtonDisabled = true;
-
     // Fallback to form-history if ...
     //   - specified autofill feature is pref off.
     //   - no profile can fill the currently-focused input.
     //   - the current form has already been populated.
     //   - (address only) less than 3 inputs are covered by all saved fields in the storage.
     if (!searchPermitted || !savedFieldNames.has(info.fieldName) ||
-        (!isInputAutofilled | clearFormButtonDisabled && filledRecordGUID) || (isAddressField &&
+        (!isInputAutofilled && filledRecordGUID) || (isAddressField &&
         allFieldNames.filter(field => savedFieldNames.has(field)).length < FormAutofillUtils.AUTOFILL_FIELDS_THRESHOLD)) {
       if (focusedInput.autocomplete == "off") {
         // Create a dummy AddressResult as an empty search result.
@@ -150,7 +146,7 @@ AutofillProfileAutoCompleteSearch.prototype = {
     };
 
     // Show clear form popup if click on filled fields.
-    if (isInputAutofilled && !clearFormButtonDisabled) {
+    if (isInputAutofilled) {
       let result = null;
       result = new ClearFormResult(searchString, info.fieldName, [], [], {});
       listener.onSearchResult(this, result);
@@ -536,6 +532,18 @@ var FormAutofillContent = {
     );
   },
 
+  clearForm() {
+    let focusedInput = formFillController.focusedInput || ProfileAutocomplete._lastAutoCompleteFocusedInput;
+    if (!focusedInput) {
+      return;
+    }
+    let formHandler = this.getFormHandler(focusedInput);
+    if (!formHandler) {
+      return;
+    }
+    formHandler.clearPopulatedForm(focusedInput);
+  },
+
   previewProfile(doc) {
     let docWin = doc.ownerGlobal;
     let selectedIndex = ProfileAutocomplete._getSelectedIndex(docWin);
@@ -599,6 +607,9 @@ var FormAutofillContent = {
       focusedInput.addEventListener("DOMAutoComplete", () => {
         Services.cpmm.sendAsyncMessage("FormAutofill:OpenPreferences");
       }, {once: true});
+    }
+    if (selectedRowStyle == "autofill-clear-button") {
+      FormAutofillContent.clearForm();
     }
   },
 };

@@ -402,7 +402,7 @@ class ClearFormResult extends ProfileAutoCompleteResult {
 
   _generateLabels() {
     return [
-      {primary: "Clear Form", secondary: ""}, // clear form button
+      "", // clear form button
       {primary: "", secondary: ""}, // more options button
     ];
   }
@@ -413,6 +413,6 @@ class ClearFormResult extends ProfileAutoCompleteResult {
     if (index == this.matchCount - 1) {
       return "autofill-footer";
     }
-    return "autofill-profile";
+    return "autofill-clear-button";
   }
 }
