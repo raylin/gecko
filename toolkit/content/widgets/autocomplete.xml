@@ -1310,12 +1310,18 @@ extends="chrome://global/content/bindings/popup.xml#popup">
               originalText = item.getAttribute("ac-text");
               originalType = item.getAttribute("originaltype");
 
-              // All of types are reusable except for autofill-profile,
-              // which has different structure of <content> and overrides
+              // All of types are reusable except for form autofill bindings
+              // which have different structure of <content> and overrided
               // _adjustAcItem().
+              let formAutofillStyles = [
+                "autofill-profile",
+                "autofill-footer",
+                "autofill-clear-button",
+                "autofill-insecureWarning",
+              ];
               reusable = originalType === style ||
-                         (style !== "autofill-profile" && originalType !== "autofill-profile" &&
-                         style !== "autofill-footer" && originalType !== "autofill-footer");
+                !(formAutofillStyles.includes(style) || formAutofillStyles.includes(originalType));
+
             } else {
               // need to create a new item
               item = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "richlistitem");
